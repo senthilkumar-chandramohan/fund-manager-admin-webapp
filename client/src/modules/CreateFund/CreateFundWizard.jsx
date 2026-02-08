@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CheckCircle } from 'lucide-react'
 import { Wallet } from 'ethers'
+import { API_HOST } from '../../common/constants'
 
 const CreateFundWizard = () => {
   const [createFundStep, setCreateFundStep] = useState(1)
@@ -29,6 +30,7 @@ const CreateFundWizard = () => {
   const [riskAppetite, setRiskAppetite] = useState('MEDIUM')
   
   const [deploying, setDeploying] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   const steps = [
     { num: 1, label: 'Basic Info' },
@@ -83,10 +85,27 @@ const CreateFundWizard = () => {
         totalLimitForEmergencyWithdrawal: totalLimitEmergencyFormatted
       }
       
-      const response = await fetch('/api/funds', {
+      const fullPayload = {
+        contract: payload,
+        other: {
+          beneficiaries: beneficiaries.map(b => ({
+            name: b.name,
+            email: b.email,
+            relationship: b.relationship,
+            share: b.share,
+            address: b.address,
+            privateKey: b.privateKey
+          })),
+          numGovernors,
+          selectedGovernors,
+          riskAppetite
+        }
+      }
+      
+      const response = await fetch(`${API_HOST}/api/funds`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(fullPayload)
       })
       
       if (!response.ok) {
@@ -102,12 +121,60 @@ const CreateFundWizard = () => {
     }
   }
 
+  const handleNextStep = () => {
+    let error = ''
+    switch (createFundStep) {
+      case 1:
+        if (!isStep1Valid()) {
+          error = 'Please fill in all required fields before proceeding to the next step.'
+        }
+        break
+      case 2:
+        const totalShare = beneficiaries.reduce((sum, b) => sum + (b.share || 0), 0)
+        if (totalShare !== 100) {
+          error = 'The cumulative share percentage of all beneficiaries must equal 100%.'
+        } else if (!isStep2Valid()) {
+          error = 'Please add at least one beneficiary.'
+        }
+        break
+      case 3:
+        if (!isStep3Valid()) {
+          error = 'Please ensure the number of governors and selected governors match.'
+        }
+        break
+      case 4:
+        if (!isStep4Valid()) {
+          error = 'Please fill in all emergency rule fields.'
+        }
+        break
+      case 5:
+        if (!isStep5Valid()) {
+          error = 'Please select a risk appetite.'
+        }
+        break
+      default:
+        break
+    }
+
+    if (error) {
+      setErrorMessage(error)
+    } else {
+      setErrorMessage('')
+      setCreateFundStep(Math.min(6, createFundStep + 1))
+    }
+  }
+
   // Validation functions for each step
   const isStep1Valid = () => {
     return fundName.trim() && fundDescription.trim() && maturityDate && pensionAmount && releaseInterval
   }
 
   const isStep2Valid = () => {
+    const totalShare = beneficiaries.reduce((sum, b) => sum + (b.share || 0), 0)
+    if (totalShare !== 100) {
+      setErrorMessage('The cumulative share percentage of all beneficiaries must equal 100%.')
+      return false
+    }
     return beneficiaries.length > 0
   }
 
@@ -191,17 +258,20 @@ const CreateFundWizard = () => {
         >
           Previous
         </button>
+        {errorMessage && (
+          <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+        )}
         {createFundStep === 6 ? (
           <button
             onClick={deployContract}
             disabled={deploying}
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {deploying ? 'Deploying...' : 'Deploy Contract'}
+            {deploying ? 'Deploying...' : 'Create Fund'}
           </button>
         ) : (
           <button
-            onClick={() => setCreateFundStep(Math.min(6, createFundStep + 1))}
+            onClick={handleNextStep}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Next Step
@@ -311,6 +381,7 @@ const StepOne = ({ fundName, setFundName, fundDescription, setFundDescription, m
 
 const StepTwo = ({ beneficiaries, setBeneficiaries }) => {
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [relationship, setRelationship] = useState('Father')
   const [share, setShare] = useState('')
 
@@ -319,19 +390,21 @@ const StepTwo = ({ beneficiaries, setBeneficiaries }) => {
   }
 
   const addBeneficiary = () => {
-    if (!name.trim()) return
+    if (!name.trim() || !email.trim()) return
     const wallet = Wallet.createRandom()
     const b = {
       id: Date.now(),
       name: name.trim(),
       relationship,
       share: share ? Number(share) : null,
+      email: email.trim(),
       address: wallet.address,
       privateKey: wallet.privateKey
     }
     const next = [...beneficiaries, b]
     persist(next)
     setName('')
+    setEmail('')
     setShare('')
     setRelationship('Father')
   }
@@ -357,9 +430,17 @@ const StepTwo = ({ beneficiaries, setBeneficiaries }) => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+              <input value={email} onChange={e => setEmail(e.target.value)}
+                type="email" placeholder="example@email.com"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Relationship</label>
               <select value={relationship} onChange={e => setRelationship(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Self</option>
                 <option>Father</option>
                 <option>Mother</option>
                 <option>Son</option>
@@ -369,16 +450,16 @@ const StepTwo = ({ beneficiaries, setBeneficiaries }) => {
                 <option>Other</option>
               </select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Share Percentage</label>
               <input value={share} onChange={e => setShare(e.target.value)} type="number" placeholder="33.33"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+          </div>
 
-            <div className="flex items-end">
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
               <button onClick={addBeneficiary} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add</button>
             </div>
           </div>

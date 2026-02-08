@@ -33,3 +33,5 @@ export const STATUS_STYLES = {
   Success: { color: 'text-green-600' },
   Failed: { color: 'text-red-600' },
 }
+
+export const API_HOST = 'http://localhost:5000'

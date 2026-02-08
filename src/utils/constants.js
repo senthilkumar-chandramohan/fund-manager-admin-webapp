@@ -1,0 +1,1 @@
+export const DEPLOY_API_ENDPOINT = 'http://localhost:4000/deploy';

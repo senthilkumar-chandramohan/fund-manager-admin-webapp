@@ -20,7 +20,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  pensionFunds       PensionFund[]
+  //pensionFunds       PensionFund[]
   notifications      Notification[]
   preferences        UserPreferences?
   governorApprovals  GovernorApproval[]
@@ -32,25 +32,20 @@ model PensionFund {
   id                String   @id @default(cuid())
   name              String
   description       String?
-  corpus            String   // Large number as string
   maturity          DateTime
-  status            String   @default("Active") // Active, Matured, Closed
-  stablecoin        String   // USDC, USDT, DAI
-  roi               String   // Percentage as string
-  beneficiaries     Int      @default(0)
   riskAppetite      String   @default("MEDIUM") // LOW, MEDIUM, HIGH
   contractAddress   String   @unique
-  contractDeployed  Boolean  @default(false)
   
   // Relationships
-  creatorId         String
-  creator           User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  // creatorId         String
+  // creator           User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   
   investmentProposals InvestmentProposal[]
   workflows         Workflow[]
   transactions      Transaction[]
   emergencyRequests EmergencyWithdrawalRequest[]
   terminationRequests TerminationRequest[]
+  beneficiaries    Beneficiary[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,4 +180,21 @@ model GovernorApproval {
   createdAt DateTime @default(now())
 
   @@map("governor_approvals")
+}
+
+model Beneficiary {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  relationship    String
+  share           Int
+  fundId          String
+  fund            PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  walletAddress   String
+  walletPrivateKey String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("beneficiaries")
 }
