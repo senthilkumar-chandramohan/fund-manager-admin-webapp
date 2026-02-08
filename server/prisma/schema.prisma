@@ -1,0 +1,188 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  wallet    String   @unique
+  role      String   @default("user") // admin, governor, user
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  pensionFunds       PensionFund[]
+  notifications      Notification[]
+  preferences        UserPreferences?
+  governorApprovals  GovernorApproval[]
+
+  @@map("users")
+}
+
+model PensionFund {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  corpus            String   // Large number as string
+  maturity          DateTime
+  status            String   @default("Active") // Active, Matured, Closed
+  stablecoin        String   // USDC, USDT, DAI
+  roi               String   // Percentage as string
+  beneficiaries     Int      @default(0)
+  riskAppetite      String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  contractAddress   String   @unique
+  contractDeployed  Boolean  @default(false)
+  
+  // Relationships
+  creatorId         String
+  creator           User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  investmentProposals InvestmentProposal[]
+  workflows         Workflow[]
+  transactions      Transaction[]
+  emergencyRequests EmergencyWithdrawalRequest[]
+  terminationRequests TerminationRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pension_funds")
+}
+
+model InvestmentProposal {
+  id              String   @id @default(cuid())
+  fundId          String
+  fund            PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  aiScore         String   // 0-100
+  expectedROI     String   // Percentage
+  riskLevel       String   // LOW, MEDIUM, HIGH
+  status          String   @default("Pending") // Pending, Approved, Rejected
+  
+  createdAt       DateTime @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  approvedBy      String?
+
+  @@map("investment_proposals")
+}
+
+model Workflow {
+  id            String   @id @default(cuid())
+  fundId        String
+  fund          PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  type          String   // Investment Allocation, Pension Distribution, etc
+  status        String   @default("Running") // Running, Success, Failed, Paused
+  n8nWorkflowId String?
+  
+  lastRun       DateTime?
+  nextRun       DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("workflows")
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  fundId        String
+  fund          PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  txHash        String?  @unique
+  type          String   // Deposit, Withdrawal, Interest, etc
+  amount        String
+  status        String   @default("Pending")
+  
+  createdAt     DateTime @default(now())
+
+  @@map("transactions")
+}
+
+model EmergencyWithdrawalRequest {
+  id            String   @id @default(cuid())
+  fundId        String
+  fund          PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  amount        String
+  reason        String?
+  status        String   @default("Pending") // Pending, Approved, Rejected, Processed
+  
+  approvedAt    DateTime?
+  approvedBy    String?
+
+  createdAt     DateTime @default(now())
+
+  @@map("emergency_withdrawal_requests")
+}
+
+model TerminationRequest {
+  id            String   @id @default(cuid())
+  fundId        String
+  fund          PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  reason        String?
+  status        String   @default("Pending") // Pending, Approved, Rejected
+  
+  approvedAt    DateTime?
+  approvedBy    String?
+
+  createdAt     DateTime @default(now())
+
+  @@map("termination_requests")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String
+  type      String   // info, warning, error, success
+  read      Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model UserPreferences {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  theme              String  @default("light")
+  language           String  @default("en")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model GovernorApproval {
+  id        String   @id @default(cuid())
+  governorId String
+  governor  User     @relation(fields: [governorId], references: [id], onDelete: Cascade)
+  
+  requestType String // emergency_withdrawal, termination
+  requestId   String
+  status      String @default("Pending")
+  
+  createdAt DateTime @default(now())
+
+  @@map("governor_approvals")
+}
