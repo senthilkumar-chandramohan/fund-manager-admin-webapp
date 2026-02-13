@@ -34,6 +34,8 @@ model PensionFund {
   description       String?
   maturity          DateTime
   riskAppetite      String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  reserveAmount     String?
+  investmentDuration String? // short_term, medium_term, long_term
   contractAddress   String   @unique
   
   // Relationships

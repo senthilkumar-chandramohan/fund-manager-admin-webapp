@@ -7,21 +7,121 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // Get all funds
-router.get('/funds', (req, res) => {
-  res.json({ 
-    data: [
-      { id: 1, name: 'Fund A', value: 10000 },
-      { id: 2, name: 'Fund B', value: 25000 }
-    ] 
-  });
+router.get('/funds', async (req, res) => {
+  try {
+    const { search, status } = req.query;
+    
+    // Build where clause
+    const where = {};
+    
+    // Search by name
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: 'insensitive'
+      };
+    }
+    
+    // Filter by maturity status
+    if (status && status !== 'All') {
+      const now = new Date();
+      if (status === 'Active') {
+        where.maturity = {
+          gt: now
+        };
+      } else if (status === 'Matured') {
+        where.maturity = {
+          lte: now
+        };
+      }
+    }
+    
+    const funds = await prisma.pensionFund.findMany({
+      where,
+      include: {
+        beneficiaries: true,
+        _count: {
+          select: { beneficiaries: true }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    // Format the response with computed fields
+    const formattedFunds = funds.map(fund => ({
+      id: fund.id,
+      name: fund.name,
+      description: fund.description,
+      contractAddress: fund.contractAddress,
+      maturity: fund.maturity,
+      riskAppetite: fund.riskAppetite,
+      reserveAmount: fund.reserveAmount,
+      investmentDuration: fund.investmentDuration,
+      status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
+      beneficiaries: fund._count.beneficiaries,
+      createdAt: fund.createdAt,
+      updatedAt: fund.updatedAt
+    }));
+    
+    res.json({ data: formattedFunds });
+  } catch (error) {
+    console.error('Error fetching funds:', error);
+    res.status(500).json({ message: 'An error occurred while fetching funds', error: error.message });
+  }
 });
 
 // Get fund by ID
-router.get('/funds/:id', (req, res) => {
-  const { id } = req.params;
-  res.json({ 
-    data: { id, name: `Fund ${id}`, value: 10000 + (id * 5000) } 
-  });
+router.get('/funds/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const fund = await prisma.pensionFund.findUnique({
+      where: { id },
+      include: {
+        beneficiaries: true,
+        investmentProposals: true,
+        workflows: true,
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        },
+        _count: {
+          select: { beneficiaries: true }
+        }
+      }
+    });
+    
+    if (!fund) {
+      return res.status(404).json({ message: 'Fund not found' });
+    }
+    
+    // Format the response
+    const formattedFund = {
+      id: fund.id,
+      name: fund.name,
+      description: fund.description,
+      contractAddress: fund.contractAddress,
+      maturity: fund.maturity,
+      riskAppetite: fund.riskAppetite,
+      reserveAmount: fund.reserveAmount,
+      investmentDuration: fund.investmentDuration,
+      status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
+      beneficiaries: fund.beneficiaries,
+      beneficiaryCount: fund._count.beneficiaries,
+      investmentProposals: fund.investmentProposals,
+      workflows: fund.workflows,
+      transactions: fund.transactions,
+      createdAt: fund.createdAt,
+      updatedAt: fund.updatedAt
+    };
+    
+    res.json({ data: formattedFund });
+  } catch (error) {
+    console.error('Error fetching fund:', error);
+    res.status(500).json({ message: 'An error occurred while fetching fund', error: error.message });
+  }
 });
 
 // Create new fund
@@ -56,6 +156,8 @@ router.post('/funds', async (req, res) => {
           maturity: maturityDate,
           contractAddress,
           riskAppetite: other.riskAppetite,
+          reserveAmount: other.reserveAmount,
+          investmentDuration: other.investmentDuration,
         },
       });
       console.log(fund);
@@ -84,6 +186,46 @@ router.post('/funds', async (req, res) => {
   } catch (error) {
     console.error('Error creating fund:', error);
     res.status(500).json({ message: 'An error occurred while creating the fund', error: error.message });
+  }
+});
+
+// Update fund
+router.put('/funds/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, riskAppetite, investmentDuration, reserveAmount } = req.body;
+
+    console.log(req.body);
+
+    // Check if fund exists
+    const existingFund = await prisma.pensionFund.findUnique({
+      where: { id }
+    });
+
+    console.log(existingFund);
+
+    if (!existingFund) {
+      return res.status(404).json({ message: 'Fund not found' });
+    }
+
+    // Build update data object (only include fields that are provided)
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (riskAppetite !== undefined) updateData.riskAppetite = riskAppetite;
+    if (investmentDuration !== undefined) updateData.investmentDuration = investmentDuration;
+    if (reserveAmount !== undefined) updateData.reserveAmount = reserveAmount;
+    console.log("Updating...");
+    // Update the fund
+    const updatedFund = await prisma.pensionFund.update({
+      where: { id },
+      data: updateData
+    });
+
+    res.json({ message: 'Fund updated successfully', fund: updatedFund });
+  } catch (error) {
+    console.error('Error updating fund:', error);
+    res.status(500).json({ message: 'An error occurred while updating the fund', error: error.message });
   }
 });
 

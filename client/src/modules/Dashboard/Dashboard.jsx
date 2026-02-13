@@ -1,8 +1,9 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { DollarSign, Briefcase, TrendingUp, Bell, AlertCircle } from 'lucide-react'
 import { dashboardStats, pensionFunds } from '../../common/data'
 
-const Dashboard = ({ setCurrentScreen }) => {
+const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -10,10 +11,10 @@ const Dashboard = ({ setCurrentScreen }) => {
           <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-600 mt-1">Overview of all pension fund accounts</p>
         </div>
-        <button onClick={() => setCurrentScreen('create-fund')} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <Link to="/create-fund" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
           <TrendingUp size={20} />
           Create Fund
-        </button>
+        </Link>
       </div>
 
       {/* Stats Cards */}

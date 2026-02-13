@@ -1,8 +1,11 @@
 import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, LogOut, BarChart3, Briefcase, Plus, TrendingUp, Activity, Users, FileText, Settings } from 'lucide-react'
 import { menuItems } from '../../common/data'
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, currentScreen, setCurrentScreen }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const location = useLocation()
+  
   const getIcon = (id) => {
     const iconMap = {
       'dashboard': BarChart3,
@@ -15,6 +18,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, currentScreen, setCurrentScreen 
       'settings': Settings,
     }
     return iconMap[id] || BarChart3
+  }
+
+  const getPath = (id) => {
+    const pathMap = {
+      'dashboard': '/',
+      'funds': '/funds',
+      'create-fund': '/create-fund',
+      'investments': '/investments',
+      'workflows': '/workflows',
+      'beneficiaries': '/beneficiaries',
+      'reports': '/reports',
+      'settings': '/settings',
+    }
+    return pathMap[id] || '/'
+  }
+
+  const isActive = (id) => {
+    const path = getPath(id)
+    if (path === '/') {
+      return location.pathname === '/' || location.pathname === '/dashboard'
+    }
+    return location.pathname.startsWith(path)
   }
 
   return (
@@ -30,16 +55,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, currentScreen, setCurrentScreen 
         {menuItems.map(item => {
           const Icon = getIcon(item.id)
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => setCurrentScreen(item.id)}
+              to={getPath(item.id)}
               className={`w-full flex items-center gap-3 p-3 rounded mb-2 transition-colors ${
-                currentScreen === item.id ? 'bg-blue-600' : 'hover:bg-slate-800'
+                isActive(item.id) ? 'bg-blue-600' : 'hover:bg-slate-800'
               }`}
             >
               <Icon size={20} />
               {sidebarOpen && <span>{item.label}</span>}
-            </button>
+            </Link>
           )
         })}
       </nav>

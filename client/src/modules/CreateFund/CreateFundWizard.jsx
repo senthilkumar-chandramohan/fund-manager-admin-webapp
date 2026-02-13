@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { CheckCircle } from 'lucide-react'
 import { Wallet } from 'ethers'
 import { API_HOST } from '../../common/constants'
@@ -28,9 +29,13 @@ const CreateFundWizard = () => {
   
   // StepFive state
   const [riskAppetite, setRiskAppetite] = useState('MEDIUM')
+  const [reserveAmount, setReserveAmount] = useState('')
+  const [investmentDuration, setInvestmentDuration] = useState('medium_term')
   
   const [deploying, setDeploying] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [fundCreated, setFundCreated] = useState(false)
+  const [createdFundData, setCreatedFundData] = useState(null)
 
   const steps = [
     { num: 1, label: 'Basic Info' },
@@ -98,7 +103,9 @@ const CreateFundWizard = () => {
           })),
           numGovernors,
           selectedGovernors,
-          riskAppetite
+          riskAppetite,
+          reserveAmount,
+          investmentDuration
         }
       }
       
@@ -113,7 +120,8 @@ const CreateFundWizard = () => {
       }
       
       const result = await response.json()
-      alert('Fund deployed successfully: ' + JSON.stringify(result))
+      setCreatedFundData(result.fund)
+      setFundCreated(true)
     } catch (error) {
       alert('Error deploying fund: ' + error.message)
     } finally {
@@ -246,11 +254,12 @@ const CreateFundWizard = () => {
       {createFundStep === 2 && <StepTwo beneficiaries={beneficiaries} setBeneficiaries={setBeneficiaries} />}
       {createFundStep === 3 && <StepThree numGovernors={numGovernors} setNumGovernors={setNumGovernors} selectedGovernors={selectedGovernors} setSelectedGovernors={setSelectedGovernors} />}
       {createFundStep === 4 && <StepFour timesAllowed={timesAllowed} setTimesAllowed={setTimesAllowed} limitPerWithdrawal={limitPerWithdrawal} setLimitPerWithdrawal={setLimitPerWithdrawal} totalLimit={totalLimit} setTotalLimit={setTotalLimit} />}
-      {createFundStep === 5 && <StepFive riskAppetite={riskAppetite} setRiskAppetite={setRiskAppetite} />}
-      {createFundStep === 6 && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} />}
+      {createFundStep === 5 && <StepFive riskAppetite={riskAppetite} setRiskAppetite={setRiskAppetite} reserveAmount={reserveAmount} setReserveAmount={setReserveAmount} investmentDuration={investmentDuration} setInvestmentDuration={setInvestmentDuration} />}
+      {createFundStep === 6 && !fundCreated && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} reserveAmount={reserveAmount} investmentDuration={investmentDuration} />}
+      {createFundStep === 6 && fundCreated && <SuccessMessage fund={createdFundData} />}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between">
+      {!fundCreated && <div className="flex justify-between">
         <button
           onClick={() => setCreateFundStep(Math.max(1, createFundStep - 1))}
           disabled={createFundStep === 1}
@@ -277,6 +286,57 @@ const CreateFundWizard = () => {
             Next Step
           </button>
         )}
+      </div>}
+    </div>
+  )
+}
+
+const SuccessMessage = ({ fund }) => {
+  return (
+    <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+      <div className="text-center space-y-6">
+        <div className="flex justify-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle size={40} className="text-green-600" />
+          </div>
+        </div>
+        
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Fund Created Successfully!</h2>
+          <p className="text-slate-600">Your pension fund has been deployed to the blockchain.</p>
+        </div>
+
+        <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+          <div className="space-y-3 text-left">
+            <div>
+              <p className="text-sm text-slate-600">Fund Name</p>
+              <p className="font-semibold text-slate-900">{fund?.name || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Contract Address</p>
+              <p className="font-mono text-sm text-blue-600 break-all">{fund?.contractAddress || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Fund ID</p>
+              <p className="font-mono text-sm text-slate-900">{fund?.id || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 justify-center">
+          <Link
+            to={`/fund/${fund?.id}`}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          >
+            View Fund Details
+          </Link>
+          <Link
+            to="/funds"
+            className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium"
+          >
+            Back to Funds List
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -617,12 +677,18 @@ const StepFour = ({ timesAllowed, setTimesAllowed, limitPerWithdrawal, setLimitP
   )
 }
 
-const StepFive = ({ riskAppetite, setRiskAppetite }) => {
+const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmount, investmentDuration, setInvestmentDuration }) => {
 
   const riskLevels = [
     { value: 'LOW', label: 'Low Risk', description: 'Conservative approach with stable, low-volatility investments' },
     { value: 'MEDIUM', label: 'Medium Risk', description: 'Balanced portfolio with mix of stable and growth investments' },
     { value: 'HIGH', label: 'High Risk', description: 'Aggressive approach targeting higher returns with higher volatility' }
+  ]
+
+  const durationOptions = [
+    { value: 'short_term', label: 'Short Term', description: 'Investments with duration less than 1 year' },
+    { value: 'medium_term', label: 'Medium Term', description: 'Investments with duration between 1-5 years' },
+    { value: 'long_term', label: 'Long Term', description: 'Investments with duration more than 5 years' }
   ]
 
   return (
@@ -655,12 +721,55 @@ const StepFive = ({ riskAppetite, setRiskAppetite }) => {
             ))}
           </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Reserve Amount *</label>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={reserveAmount}
+              onChange={e => setReserveAmount(e.target.value)}
+              placeholder="e.g., 100000"
+              step="0.01"
+              min="0"
+              className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 font-medium">USD</span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">Amount reserved for emergency or special circumstances</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-4">Investment Duration *</label>
+          <div className="grid grid-cols-1 gap-3">
+            {durationOptions.map(duration => (
+              <label key={duration.value} className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all"
+                style={{
+                  borderColor: investmentDuration === duration.value ? '#2563eb' : '#e2e8f0',
+                  backgroundColor: investmentDuration === duration.value ? '#eff6ff' : '#ffffff'
+                }}>
+                <input
+                  type="radio"
+                  name="investmentDuration"
+                  value={duration.value}
+                  checked={investmentDuration === duration.value}
+                  onChange={e => setInvestmentDuration(e.target.value)}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <div className="ml-4">
+                  <div className="font-semibold text-slate-900">{duration.label}</div>
+                  <div className="text-sm text-slate-600">{duration.description}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite }) => {
+const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration }) => {
   const stablecoinLabels = {
     '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9': 'PYUSD - PayPal USD',
     '0xf08a50178dfcde18524640ea6618a1f965821715': 'USDC - USD Coin',
@@ -767,8 +876,19 @@ const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionA
 
         <div className="border-l-4 border-red-600 pl-4">
           <h3 className="font-semibold text-slate-900 mb-3">Investment</h3>
-          <div className="text-sm">
-            <p className="text-slate-600">Risk Appetite: <span className="font-medium">{riskAppetite}</span></p>
+          <div className="text-sm space-y-2">
+            <div>
+              <p className="text-slate-600">Risk Appetite</p>
+              <p className="font-medium">{riskAppetite}</p>
+            </div>
+            <div>
+              <p className="text-slate-600">Reserve Amount</p>
+              <p className="font-medium">${reserveAmount || '—'}</p>
+            </div>
+            <div>
+              <p className="text-slate-600">Investment Duration</p>
+              <p className="font-medium">{investmentDuration?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || '—'}</p>
+            </div>
           </div>
         </div>
       </div>
