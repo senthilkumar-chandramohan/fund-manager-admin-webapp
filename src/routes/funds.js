@@ -6,6 +6,13 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Stablecoin symbol to address mapping
+const STABLECOIN_ADDRESSES = {
+  'PYUSD': '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9',
+  'USDC': '0xf08a50178dfcde18524640ea6618a1f965821715',
+  'USDT': '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0'
+};
+
 // Get all funds
 router.get('/funds', async (req, res) => {
   try {
@@ -59,6 +66,7 @@ router.get('/funds', async (req, res) => {
       riskAppetite: fund.riskAppetite,
       reserveAmount: fund.reserveAmount,
       investmentDuration: fund.investmentDuration,
+      stablecoin: fund.stablecoin,
       status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
       beneficiaries: fund._count.beneficiaries,
       createdAt: fund.createdAt,
@@ -107,6 +115,7 @@ router.get('/funds/:id', async (req, res) => {
       riskAppetite: fund.riskAppetite,
       reserveAmount: fund.reserveAmount,
       investmentDuration: fund.investmentDuration,
+      stablecoin: fund.stablecoin,
       status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
       beneficiaries: fund.beneficiaries,
       beneficiaryCount: fund._count.beneficiaries,
@@ -132,8 +141,22 @@ router.post('/funds', async (req, res) => {
     console.log(contract);
     console.log(other);
 
+    // Get stablecoin address from symbol
+    const stablecoinSymbol = other.stablecoin;
+    const stablecoinAddress = STABLECOIN_ADDRESSES[stablecoinSymbol];
+    
+    if (!stablecoinAddress) {
+      return res.status(400).json({ message: 'Invalid stablecoin symbol provided' });
+    }
+
+    // Update contract payload with resolved address
+    const contractPayload = {
+      ...contract,
+      tokenAddress: stablecoinAddress
+    };
+
     // Call the /deploy API endpoint
-    const deployResponse = await axios.post(DEPLOY_API_ENDPOINT, contract);
+    const deployResponse = await axios.post(DEPLOY_API_ENDPOINT, contractPayload);
 
     console.log(deployResponse.status);
     console.log(deployResponse.data.contractAddress);
@@ -158,6 +181,7 @@ router.post('/funds', async (req, res) => {
           riskAppetite: other.riskAppetite,
           reserveAmount: other.reserveAmount,
           investmentDuration: other.investmentDuration,
+          stablecoin: stablecoinSymbol,
         },
       });
       console.log(fund);

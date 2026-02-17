@@ -3,23 +3,60 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export class InvestmentProposalService {
-  // Admin: Get all pending investment proposals
-  static async getPendingProposals(filters = {}) {
+  // Admin: Get all investment proposals with optional filters
+  static async getAllProposals(filters = {}) {
     try {
-      const where = { status: 'Pending' };
+      const where = {};
+      if (filters.status) where.status = filters.status;
       if (filters.fundId) where.fundId = filters.fundId;
       if (filters.riskLevel) where.riskLevel = filters.riskLevel;
 
       const proposals = await prisma.investmentProposal.findMany({
         where,
         include: {
-          fund: { select: { id: true, name: true, corpus: true, status: true } },
+          fund: { select: { id: true, name: true, description: true, riskAppetite: true, stablecoin: true } },
         },
         orderBy: { createdAt: 'desc' },
       });
       return proposals;
     } catch (error) {
+      throw new Error(`Failed to fetch proposals: ${error.message}`);
+    }
+  }
+
+  // Admin: Get all pending investment proposals
+  static async getPendingProposals(filters = {}) {
+    try {
+      return await InvestmentProposalService.getAllProposals({ ...filters, status: 'Pending' });
+    } catch (error) {
       throw new Error(`Failed to fetch pending proposals: ${error.message}`);
+    }
+  }
+
+  // Admin: Get single investment proposal by ID
+  static async getProposalById(proposalId) {
+    try {
+      const proposal = await prisma.investmentProposal.findUnique({
+        where: { id: proposalId },
+        include: {
+          fund: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              riskAppetite: true,
+              stablecoin: true,
+              contractAddress: true,
+              maturity: true,
+              reserveAmount: true,
+              investmentDuration: true
+            }
+          },
+        },
+      });
+      return proposal;
+    } catch (error) {
+      throw new Error(`Failed to fetch proposal: ${error.message}`);
     }
   }
 
@@ -45,6 +82,8 @@ export class InvestmentProposalService {
           aiScore: data.aiScore,
           expectedROI: data.expectedROI,
           riskLevel: data.riskLevel,
+          investmentAmount: data.investmentAmount,
+          investmentContract: data.investmentContract,
           status: 'Pending',
         },
       });

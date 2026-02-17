@@ -11,7 +11,7 @@ const CreateFundWizard = () => {
   const [fundName, setFundName] = useState('')
   const [fundDescription, setFundDescription] = useState('')
   const [maturityDate, setMaturityDate] = useState('')
-  const [stablecoin, setStablecoin] = useState('0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9')
+  const [stablecoin, setStablecoin] = useState('PYUSD')
   const [pensionAmount, setPensionAmount] = useState('')
   const [releaseInterval, setReleaseInterval] = useState('')
   
@@ -77,7 +77,6 @@ const CreateFundWizard = () => {
       const payload = {
         beneficiaryAddresses: beneficiaries.map(b => b.address),
         sharePercentages: beneficiaries.map(b => (b.share || 0) * 100), // convert to basis points
-        tokenAddress: stablecoin,
         releaseAmount: releaseAmountFormatted,
         releaseInterval: releaseIntervalSeconds.toString(),
         fundMaturityDate: maturityEpoch.toString(),
@@ -105,7 +104,8 @@ const CreateFundWizard = () => {
           selectedGovernors,
           riskAppetite,
           reserveAmount,
-          investmentDuration
+          investmentDuration,
+          stablecoin
         }
       }
       
@@ -344,9 +344,9 @@ const SuccessMessage = ({ fund }) => {
 
 const StepOne = ({ fundName, setFundName, fundDescription, setFundDescription, maturityDate, setMaturityDate, stablecoin, setStablecoin, pensionAmount, setPensionAmount, releaseInterval, setReleaseInterval }) => {
   const stablecoins = [
-    { label: 'PYUSD - PayPal USD', value: '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9' },
-    { label: 'USDC - USD Coin', value: '0xf08a50178dfcde18524640ea6618a1f965821715' },
-    { label: 'USDT - Tether', value: '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0' }
+    { label: 'PYUSD - PayPal USD', value: 'PYUSD' },
+    { label: 'USDC - USD Coin', value: 'USDC' },
+    { label: 'USDT - Tether', value: 'USDT' }
   ]
 
   return (

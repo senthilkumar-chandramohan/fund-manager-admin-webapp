@@ -36,6 +36,7 @@ model PensionFund {
   riskAppetite      String   @default("MEDIUM") // LOW, MEDIUM, HIGH
   reserveAmount     String?
   investmentDuration String? // short_term, medium_term, long_term
+  stablecoin        String?  // PYUSD, USDC, USDT
   contractAddress   String   @unique
   
   // Relationships
@@ -63,6 +64,8 @@ model InvestmentProposal {
   aiScore         String   // 0-100
   expectedROI     String   // Percentage
   riskLevel       String   // LOW, MEDIUM, HIGH
+  investmentAmount String? // Amount to invest in this proposal
+  investmentContract String? // Contract address for the investment
   status          String   @default("Pending") // Pending, Approved, Rejected
   
   createdAt       DateTime @default(now())

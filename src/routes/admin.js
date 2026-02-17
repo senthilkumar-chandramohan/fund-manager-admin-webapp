@@ -65,12 +65,26 @@ router.post('/workflows', async (req, res) => {
   }
 });
 
-// GET /api/admin/investment-proposals - List pending investment proposals
+// GET /api/admin/investment-proposals - List investment proposals with filters
 router.get('/investment-proposals', async (req, res) => {
   try {
-    const { fundId, riskLevel } = req.query;
-    const proposals = await InvestmentProposalService.getPendingProposals({ fundId, riskLevel });
+    const { fundId, riskLevel, status } = req.query;
+    const proposals = await InvestmentProposalService.getAllProposals({ fundId, riskLevel, status });
     res.json({ success: true, data: proposals });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/admin/investment-proposals/:id - Get single investment proposal
+router.get('/investment-proposals/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const proposal = await InvestmentProposalService.getProposalById(id);
+    if (!proposal) {
+      return res.status(404).json({ error: 'Proposal not found' });
+    }
+    res.json({ success: true, data: proposal });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -107,6 +121,31 @@ router.post('/investment-proposals/:id/reject', async (req, res) => {
     res.json({ success: true, data: proposal });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/jobs/investment-batch - Manually trigger investment batch job
+router.get('/jobs/investment-batch', async (req, res) => {
+  try {
+    // Import dynamically to avoid circular dependencies
+    const { default: InvestmentBatchJobService } = await import('../services/InvestmentBatchJobService.js');
+    const batchJobService = new InvestmentBatchJobService();
+    
+    console.log('Manual investment batch job triggered via API');
+    const result = await batchJobService.execute();
+    
+    res.json({ 
+      success: true, 
+      message: 'Investment batch job completed successfully',
+      data: result 
+    });
+  } catch (error) {
+    console.error('Manual investment batch job failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Investment batch job failed'
+    });
   }
 });
 
