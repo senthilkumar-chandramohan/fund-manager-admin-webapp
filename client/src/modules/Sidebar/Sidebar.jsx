@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, LogOut, BarChart3, Briefcase, Plus, TrendingUp, Activity, Users, FileText, Settings } from 'lucide-react'
+import { Menu, X, LogOut, BarChart3, Briefcase, Plus, TrendingUp, Activity, Users, FileText, Settings, Wrench } from 'lucide-react'
 import { menuItems } from '../../common/data'
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -14,7 +14,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       'investments': TrendingUp,
       'workflows': Activity,
       'beneficiaries': Users,
-      'reports': FileText,
+      'utilities': Wrench,
       'settings': Settings,
     }
     return iconMap[id] || BarChart3
@@ -29,7 +29,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       'investments': '/investments',
       'workflows': '/workflows',
       'beneficiaries': '/beneficiaries',
-      'reports': '/reports',
+      'utilities': '/utilities',
       'settings': '/settings',
     }
     return pathMap[id] || '/'

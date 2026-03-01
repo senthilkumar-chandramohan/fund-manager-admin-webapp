@@ -35,11 +35,6 @@ export class PensionFundService {
 
       const funds = await prisma.pensionFund.findMany({
         where,
-        include: {
-          creator: { select: { id: true, name: true, email: true } },
-          investmentProposals: true,
-          workflows: true,
-        },
         orderBy: { createdAt: 'desc' },
       });
       return funds;

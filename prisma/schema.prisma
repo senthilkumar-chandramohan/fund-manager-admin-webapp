@@ -22,6 +22,7 @@ model User {
   email     String   @unique
   name      String?
   wallet    String   @unique
+  privateKey String?
   role      String   @default("user") // admin, governor, user
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,6 +48,7 @@ model PensionFund {
   releaseInterval   ReleaseInterval? // Pension release interval
   lastReleasedDate  DateTime? // Last date pension was released
   contractAddress   String   @unique
+  selectedGovernors String[] // Array of governor user IDs
   
   // Relationships
   // creatorId         String

@@ -3,7 +3,11 @@ import PensionFundService from '../services/PensionFundService.js';
 import InvestmentProposalService from '../services/InvestmentProposalService.js';
 import InvestmentService from '../services/InvestmentService.js';
 import WorkflowService from '../services/WorkflowService.js';
+import { PrismaClient } from '@prisma/client';
+import { ethers } from 'ethers';
+import { contributeToPensionFund } from '../utils/blockchain.js';
 
+const prisma = new PrismaClient();
 const router = express.Router();
 
 // POST /api/admin/pension-funds - Create new pension fund with smart contract
@@ -197,6 +201,177 @@ router.get('/jobs/investment-divestment', async (req, res) => {
       error: error.message,
       message: 'Investment divestment job failed'
     });
+  }
+});
+
+// GET /api/admin/governors - Get all governors
+router.get('/governors', async (req, res) => {
+  try {
+    const governors = await prisma.user.findMany({
+      where: { role: 'governor' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        wallet: true,
+        createdAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, data: governors });
+  } catch (error) {
+    console.error('Error fetching governors:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/governors - Create a new governor
+router.post('/governors', async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+
+    // Check if user with email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Create a new wallet for the governor
+    const wallet = ethers.Wallet.createRandom();
+    const walletAddress = wallet.address;
+    const privateKey = wallet.privateKey;
+
+    // Create governor user in database
+    const governor = await prisma.user.create({
+      data: {
+        name,
+        email,
+        wallet: walletAddress,
+        privateKey: privateKey,
+        role: 'governor'
+      }
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      data: {
+        id: governor.id,
+        name: governor.name,
+        email: governor.email,
+        wallet: governor.wallet,
+        role: governor.role
+      }
+    });
+  } catch (error) {
+    console.error('Error creating governor:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/pension-funds/:id/add-funds - Add funds to pension contract
+router.post('/pension-funds/:id/add-funds', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+
+    if (!amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+
+    // Get the pension fund
+    const fund = await prisma.pensionFund.findUnique({
+      where: { id }
+    });
+
+    if (!fund) {
+      return res.status(404).json({ error: 'Pension fund not found' });
+    }
+
+    if (!fund.contractAddress) {
+      return res.status(400).json({ error: 'Pension fund does not have a contract address' });
+    }
+
+    if (!fund.stablecoin) {
+      return res.status(400).json({ error: 'Pension fund does not have a stablecoin configured' });
+    }
+
+    // Stablecoin address mapping
+    const STABLECOIN_ADDRESSES = {
+      'PYUSD': '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9',
+      'USDC': '0xf08a50178dfcde18524640ea6618a1f965821715',
+      'USDT': '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0'
+    };
+
+    const tokenAddress = STABLECOIN_ADDRESSES[fund.stablecoin];
+    if (!tokenAddress) {
+      return res.status(400).json({ error: 'Invalid stablecoin in fund configuration' });
+    }
+
+    // Initiate blockchain contribution
+    console.log(`Initiating contribution of ${amount} ${fund.stablecoin} to contract ${fund.contractAddress}`);
+    
+    try {
+      const contributionResult = await contributeToPensionFund(
+        tokenAddress,
+        fund.contractAddress,
+        amount,
+        `Admin contribution to ${fund.name}`
+      );
+
+      // Record transaction in database
+      await prisma.transaction.create({
+        data: {
+          fundId: fund.id,
+          txHash: contributionResult.contributeTxHash,
+          type: 'Deposit',
+          amount: amount.toString(),
+          status: contributionResult.success ? 'Completed' : 'Failed'
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Successfully contributed ${amount} ${fund.stablecoin} to pension fund contract`,
+        data: {
+          fundId: fund.id,
+          fundName: fund.name,
+          contractAddress: fund.contractAddress,
+          amount: amount,
+          stablecoin: fund.stablecoin,
+          approveTxHash: contributionResult.approveTxHash,
+          contributeTxHash: contributionResult.contributeTxHash,
+          blockNumber: contributionResult.blockNumber
+        }
+      });
+    } catch (blockchainError) {
+      console.error('Blockchain contribution failed:', blockchainError);
+      
+      // Record failed transaction
+      await prisma.transaction.create({
+        data: {
+          fundId: fund.id,
+          type: 'Deposit',
+          amount: amount.toString(),
+          status: 'Failed'
+        }
+      });
+
+      return res.status(500).json({ 
+        error: 'Blockchain contribution failed',
+        details: blockchainError.message 
+      });
+    }
+  } catch (error) {
+    console.error('Error adding funds to pension contract:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

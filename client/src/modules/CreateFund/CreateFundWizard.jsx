@@ -21,6 +21,8 @@ const CreateFundWizard = () => {
   // StepThree state
   const [numGovernors, setNumGovernors] = useState('')
   const [selectedGovernors, setSelectedGovernors] = useState([])
+  const [governors, setGovernors] = useState([])
+  const [governorsLoading, setGovernorsLoading] = useState(false)
   
   // StepFour state
   const [timesAllowed, setTimesAllowed] = useState('')
@@ -46,6 +48,28 @@ const CreateFundWizard = () => {
     { num: 6, label: 'Review' }
   ]
 
+  // Fetch governors when reaching step 3
+  useEffect(() => {
+    if (createFundStep === 3 && governors.length === 0) {
+      fetchGovernors()
+    }
+  }, [createFundStep])
+
+  const fetchGovernors = async () => {
+    setGovernorsLoading(true)
+    try {
+      const response = await fetch(`${API_HOST}/api/admin/governors`)
+      const result = await response.json()
+      if (result.success) {
+        setGovernors(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching governors:', error)
+    } finally {
+      setGovernorsLoading(false)
+    }
+  }
+
   const deployContract = async () => {
     try {
       setDeploying(true)
@@ -58,17 +82,9 @@ const CreateFundWizard = () => {
       const limitPerEmergencyFormatted = (Number(limitPerWithdrawal) * 1000000).toString()
       const totalLimitEmergencyFormatted = (Number(totalLimit) * 1000000).toString()
       
-      // Get governor addresses from selected IDs (mock data - in production, fetch real addresses)
-      const governorsList = [
-        { id: 1, address: '0x1234567890123456789012345678901234567890' },
-        { id: 2, address: '0x0987654321098765432109876543210987654321' },
-        { id: 3, address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' },
-        { id: 4, address: '0xfedbcafedbcafedbcafedbcafedbcafedbcafedb' },
-        { id: 5, address: '0x1111111111111111111111111111111111111111' },
-        { id: 6, address: '0x2222222222222222222222222222222222222222' }
-      ]
+      // Get governor addresses from selected IDs using the governors loaded from database
       const governorAddresses = selectedGovernors.map(id => 
-        governorsList.find(g => g.id === id)?.address || '0x' + '0'.repeat(40)
+        governors.find(g => g.id === id)?.wallet || '0x' + '0'.repeat(40)
       )
       
       const payload = {
@@ -249,10 +265,10 @@ const CreateFundWizard = () => {
       {/* Form Content */}
       {createFundStep === 1 && <StepOne fundName={fundName} setFundName={setFundName} fundDescription={fundDescription} setFundDescription={setFundDescription} maturityDate={maturityDate} setMaturityDate={setMaturityDate} stablecoin={stablecoin} setStablecoin={setStablecoin} pensionAmount={pensionAmount} setPensionAmount={setPensionAmount} releaseInterval={releaseInterval} setReleaseInterval={setReleaseInterval} />}
       {createFundStep === 2 && <StepTwo beneficiaries={beneficiaries} setBeneficiaries={setBeneficiaries} />}
-      {createFundStep === 3 && <StepThree numGovernors={numGovernors} setNumGovernors={setNumGovernors} selectedGovernors={selectedGovernors} setSelectedGovernors={setSelectedGovernors} />}
+      {createFundStep === 3 && <StepThree numGovernors={numGovernors} setNumGovernors={setNumGovernors} selectedGovernors={selectedGovernors} setSelectedGovernors={setSelectedGovernors} governors={governors} governorsLoading={governorsLoading} />}
       {createFundStep === 4 && <StepFour timesAllowed={timesAllowed} setTimesAllowed={setTimesAllowed} limitPerWithdrawal={limitPerWithdrawal} setLimitPerWithdrawal={setLimitPerWithdrawal} totalLimit={totalLimit} setTotalLimit={setTotalLimit} />}
       {createFundStep === 5 && <StepFive riskAppetite={riskAppetite} setRiskAppetite={setRiskAppetite} reserveAmount={reserveAmount} setReserveAmount={setReserveAmount} investmentDuration={investmentDuration} setInvestmentDuration={setInvestmentDuration} />}
-      {createFundStep === 6 && !fundCreated && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} reserveAmount={reserveAmount} investmentDuration={investmentDuration} />}
+      {createFundStep === 6 && !fundCreated && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} governors={governors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} reserveAmount={reserveAmount} investmentDuration={investmentDuration} />}
       {createFundStep === 6 && fundCreated && <SuccessMessage fund={createdFundData} />}
 
       {/* Navigation Buttons */}
@@ -545,16 +561,7 @@ const StepTwo = ({ beneficiaries, setBeneficiaries }) => {
   )
 }
 
-const StepThree = ({ numGovernors, setNumGovernors, selectedGovernors, setSelectedGovernors }) => {
-  const governorsList = [
-    { id: 1, name: 'Alice Johnson', email: 'alice@example.com' },
-    { id: 2, name: 'Bob Smith', email: 'bob@example.com' },
-    { id: 3, name: 'Carol Williams', email: 'carol@example.com' },
-    { id: 4, name: 'David Brown', email: 'david@example.com' },
-    { id: 5, name: 'Emma Davis', email: 'emma@example.com' },
-    { id: 6, name: 'Frank Miller', email: 'frank@example.com' }
-  ]
-
+const StepThree = ({ numGovernors, setNumGovernors, selectedGovernors, setSelectedGovernors, governors, governorsLoading }) => {
   const handleGovernorSelect = (governorId) => {
     const max = numGovernors ? Number(numGovernors) : Infinity
     if (selectedGovernors.includes(governorId)) {
@@ -588,7 +595,12 @@ const StepThree = ({ numGovernors, setNumGovernors, selectedGovernors, setSelect
             {numGovernors ? `Select up to ${numGovernors} governors` : 'Enter number of governors first'}
           </p>
           <div className="border border-slate-300 rounded-lg p-4 space-y-3 max-h-64 overflow-y-auto">
-            {governorsList.map(governor => (
+            {governorsLoading ? (
+              <p className="text-sm text-slate-500 text-center py-4">Loading governors...</p>
+            ) : governors.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No governors found. Please add governors in Utilities section first.</p>
+            ) : (
+              governors.map(governor => (
               <label key={governor.id} className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded">
                 <input
                   type="checkbox"
@@ -602,7 +614,8 @@ const StepThree = ({ numGovernors, setNumGovernors, selectedGovernors, setSelect
                   <div className="text-xs text-slate-500">{governor.email}</div>
                 </div>
               </label>
-            ))}
+              ))
+            )}
           </div>
           {selectedGovernors.length > 0 && (
             <p className="text-sm text-blue-600 mt-3">
@@ -765,24 +778,15 @@ const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmou
   )
 }
 
-const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration }) => {
+const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, governors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration }) => {
   const stablecoinLabels = {
     'PYUSD': 'PYUSD - PayPal USD',
     'USDC': 'USDC - USD Coin',
     'USDT': 'USDT - Tether'
   }
 
-  const governorsList = [
-    { id: 1, name: 'Alice Johnson' },
-    { id: 2, name: 'Bob Smith' },
-    { id: 3, name: 'Carol Williams' },
-    { id: 4, name: 'David Brown' },
-    { id: 5, name: 'Emma Davis' },
-    { id: 6, name: 'Frank Miller' }
-  ]
-
   const selectedGovernorNames = selectedGovernors.map(id => 
-    governorsList.find(g => g.id === id)?.name || 'Unknown'
+    governors.find(g => g.id === id)?.name || 'Unknown'
   )
 
   return (

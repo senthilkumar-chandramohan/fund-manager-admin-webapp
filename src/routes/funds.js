@@ -199,6 +199,7 @@ router.post('/funds', async (req, res) => {
           investmentDuration: other.investmentDuration,
           stablecoin: stablecoinSymbol,
           releaseInterval: other.releaseInterval,
+          selectedGovernors: other.selectedGovernors || [],
         },
       });
       console.log(fund);

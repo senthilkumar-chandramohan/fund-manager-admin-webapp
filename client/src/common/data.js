@@ -32,6 +32,6 @@ export const menuItems = [
   { id: 'investments', label: 'Investments' },
   { id: 'workflows', label: 'Workflows' },
   { id: 'beneficiaries', label: 'Beneficiaries' },
-  { id: 'reports', label: 'Reports' },
+  { id: 'utilities', label: 'Utilities' },
   { id: 'settings', label: 'Settings' },
 ]
