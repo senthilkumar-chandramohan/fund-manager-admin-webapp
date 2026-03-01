@@ -243,12 +243,12 @@ Analyze each contract and generate investment proposals. For each contract, prov
 3. Risk Level: LOW, MEDIUM, or HIGH
 4. Investment Amount: How much to allocate (total allocations should not exceed available excess funds)
 
-Generate 2-5 investment proposals based on the available contracts and fund parameters.
+Generate 1-2 investment proposals based on the available contracts and fund parameters.
 
 IMPORTANT: Respond ONLY with a valid JSON array. Each object must have exactly these fields:
 - aiScore: string (number 0-100)
 - expectedROI: string (decimal percentage)
-- riskLevel: string (must be exactly "LOW", "MEDIUM", or "HIGH")
+- riskLevel: string (must be exactly "LOW", "MEDIUM", or "HIGH" and should not exceed risk apetite specified above)
 - investmentAmount: string (amount in {stablecoin} units, ensure total doesn't exceed {excessFunds})
 - contractAddress: string (from available contracts)
 - analysis: string (brief explanation)

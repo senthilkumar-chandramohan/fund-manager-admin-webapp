@@ -13,7 +13,7 @@ const CreateFundWizard = () => {
   const [maturityDate, setMaturityDate] = useState('')
   const [stablecoin, setStablecoin] = useState('PYUSD')
   const [pensionAmount, setPensionAmount] = useState('')
-  const [releaseInterval, setReleaseInterval] = useState('')
+  const [releaseInterval, setReleaseInterval] = useState('WEEKLY')
   
   // StepTwo state
   const [beneficiaries, setBeneficiaries] = useState([])
@@ -53,9 +53,6 @@ const CreateFundWizard = () => {
       // Convert maturity date to epoch
       const maturityEpoch = Math.floor(new Date(maturityDate).getTime() / 1000)
       
-      // Convert release interval from weeks to seconds
-      const releaseIntervalSeconds = Number(releaseInterval) * 7 * 24 * 60 * 60
-      
       // Convert amounts to 6 decimals (multiply by 1000000)
       const releaseAmountFormatted = (Number(pensionAmount) * 1000000).toString()
       const limitPerEmergencyFormatted = (Number(limitPerWithdrawal) * 1000000).toString()
@@ -78,7 +75,6 @@ const CreateFundWizard = () => {
         beneficiaryAddresses: beneficiaries.map(b => b.address),
         sharePercentages: beneficiaries.map(b => (b.share || 0) * 100), // convert to basis points
         releaseAmount: releaseAmountFormatted,
-        releaseInterval: releaseIntervalSeconds.toString(),
         fundMaturityDate: maturityEpoch.toString(),
         causeName: fundName,
         causeDescription: fundDescription,
@@ -105,7 +101,8 @@ const CreateFundWizard = () => {
           riskAppetite,
           reserveAmount,
           investmentDuration,
-          stablecoin
+          stablecoin,
+          releaseInterval
         }
       }
       
@@ -420,18 +417,17 @@ const StepOne = ({ fundName, setFundName, fundDescription, setFundDescription, m
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Release Interval *</label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={releaseInterval}
-                onChange={e => setReleaseInterval(e.target.value)}
-                placeholder="e.g., 4"
-                min="1"
-                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 font-medium">Weeks</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">Frequency of pension payouts in weeks</p>
+            <select
+              value={releaseInterval}
+              onChange={e => setReleaseInterval(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="WEEKLY">Weekly</option>
+              <option value="FORTNIGHTLY">Fortnightly</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="QUARTERLY">Quarterly</option>
+            </select>
+            <p className="text-xs text-slate-500 mt-1">Frequency of pension payouts</p>
           </div>
         </div>
       </div>
@@ -771,9 +767,9 @@ const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmou
 
 const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration }) => {
   const stablecoinLabels = {
-    '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9': 'PYUSD - PayPal USD',
-    '0xf08a50178dfcde18524640ea6618a1f965821715': 'USDC - USD Coin',
-    '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0': 'USDT - Tether'
+    'PYUSD': 'PYUSD - PayPal USD',
+    'USDC': 'USDC - USD Coin',
+    'USDT': 'USDT - Tether'
   }
 
   const governorsList = [
@@ -819,7 +815,7 @@ const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionA
             </div>
             <div>
               <p className="text-slate-600">Release Interval</p>
-              <p className="font-medium">{releaseInterval || '—'} weeks</p>
+              <p className="font-medium">{releaseInterval ? releaseInterval.charAt(0) + releaseInterval.slice(1).toLowerCase() : '—'}</p>
             </div>
           </div>
         </div>

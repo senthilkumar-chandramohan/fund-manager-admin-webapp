@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ReleaseInterval {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+  QUARTERLY
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -37,6 +44,8 @@ model PensionFund {
   reserveAmount     String?
   investmentDuration String? // short_term, medium_term, long_term
   stablecoin        String?  // PYUSD, USDC, USDT
+  releaseInterval   ReleaseInterval? // Pension release interval
+  lastReleasedDate  DateTime? // Last date pension was released
   contractAddress   String   @unique
   
   // Relationships
@@ -49,6 +58,7 @@ model PensionFund {
   emergencyRequests EmergencyWithdrawalRequest[]
   terminationRequests TerminationRequest[]
   beneficiaries    Beneficiary[]
+  investments       Investment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,6 +77,8 @@ model InvestmentProposal {
   investmentAmount String? // Amount to invest in this proposal
   investmentContract String? // Contract address for the investment
   status          String   @default("Pending") // Pending, Approved, Rejected
+  
+  investments     Investment[]
   
   createdAt       DateTime @default(now())
   approvedAt      DateTime?
@@ -202,4 +214,24 @@ model Beneficiary {
   updatedAt       DateTime @updatedAt
 
   @@map("beneficiaries")
+}
+
+model Investment {
+  id                  String   @id @default(cuid())
+  fundId              String
+  fund                PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  
+  proposalId          String?
+  proposal            InvestmentProposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  
+  roi                 String   // Return on Investment (percentage or value)
+  investmentAmount    String   // Amount invested
+  investmentContract  String?  // Smart contract address for the investment
+  status              String   @default("INVESTED") // INVESTED, DIVESTED
+  maturityDate        DateTime?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("investments")
 }

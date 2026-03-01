@@ -75,6 +75,19 @@ const FundDetails = () => {
               {fund.status}
             </span>
           </div>
+          <div className="col-span-2">
+            <p className="text-sm text-slate-600">Current Balance</p>
+            {fund.balance !== null && fund.balance !== undefined ? (
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-slate-900">
+                  ${parseFloat(fund.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-slate-600">{fund.stablecoin}</p>
+              </div>
+            ) : (
+              <p className="font-semibold text-slate-600">Loading balance...</p>
+            )}
+          </div>
           <div>
             <p className="text-sm text-slate-600">Description</p>
             <p className="font-semibold text-slate-900">{fund.description || 'N/A'}</p>
@@ -116,6 +129,12 @@ const FundDetails = () => {
             <p className="text-sm text-slate-600">Investment Duration</p>
             <p className="font-semibold text-slate-900">
               {fund.investmentDuration?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-slate-600">Release Interval</p>
+            <p className="font-semibold text-slate-900">
+              {fund.releaseInterval || 'N/A'}
             </p>
           </div>
           <div>

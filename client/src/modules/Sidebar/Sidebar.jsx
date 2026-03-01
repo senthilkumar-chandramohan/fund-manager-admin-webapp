@@ -25,6 +25,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       'dashboard': '/',
       'funds': '/funds',
       'create-fund': '/create-fund',
+      'investment-proposals': '/investment-proposals',
       'investments': '/investments',
       'workflows': '/workflows',
       'beneficiaries': '/beneficiaries',

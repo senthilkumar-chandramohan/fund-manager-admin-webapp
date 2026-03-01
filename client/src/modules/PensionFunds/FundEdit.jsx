@@ -12,8 +12,6 @@ const FundEdit = () => {
   const [error, setError] = useState(null)
   
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
     riskAppetite: 'MEDIUM',
     investmentDuration: 'medium_term',
     reserveAmount: ''
@@ -30,8 +28,6 @@ const FundEdit = () => {
       const fund = response.data.data
       
       setFormData({
-        name: fund.name || '',
-        description: fund.description || '',
         riskAppetite: fund.riskAppetite || 'MEDIUM',
         investmentDuration: fund.investmentDuration || 'medium_term',
         reserveAmount: fund.reserveAmount || ''
@@ -103,31 +99,6 @@ const FundEdit = () => {
 
       <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Fund Name *</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter fund name"
-              required
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Enter fund description"
-              rows={4}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Risk Appetite *</label>
             <select

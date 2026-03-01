@@ -28,6 +28,7 @@ export const menuItems = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'funds', label: 'Pension Funds' },
   { id: 'create-fund', label: 'Create Fund' },
+  { id: 'investment-proposals', label: 'Investment Proposals' },
   { id: 'investments', label: 'Investments' },
   { id: 'workflows', label: 'Workflows' },
   { id: 'beneficiaries', label: 'Beneficiaries' },

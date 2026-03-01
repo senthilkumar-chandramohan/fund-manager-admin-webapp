@@ -1,6 +1,7 @@
 import express from 'express';
 import PensionFundService from '../services/PensionFundService.js';
 import InvestmentProposalService from '../services/InvestmentProposalService.js';
+import InvestmentService from '../services/InvestmentService.js';
 import WorkflowService from '../services/WorkflowService.js';
 
 const router = express.Router();
@@ -90,6 +91,31 @@ router.get('/investment-proposals/:id', async (req, res) => {
   }
 });
 
+// GET /api/admin/investments - List all investments with filters
+router.get('/investments', async (req, res) => {
+  try {
+    const { fundId, status } = req.query;
+    const investments = await InvestmentService.getAllInvestments({ fundId, status });
+    res.json({ success: true, data: investments });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/admin/investments/:id - Get single investment
+router.get('/investments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const investment = await InvestmentService.getInvestmentById(id);
+    if (!investment) {
+      return res.status(404).json({ error: 'Investment not found' });
+    }
+    res.json({ success: true, data: investment });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/admin/investment-proposals/{id}/approve - Approve investment proposal
 router.post('/investment-proposals/:id/approve', async (req, res) => {
   try {
@@ -145,6 +171,31 @@ router.get('/jobs/investment-batch', async (req, res) => {
       success: false, 
       error: error.message,
       message: 'Investment batch job failed'
+    });
+  }
+});
+
+// POST /api/admin/jobs/investment-divestment - Manually trigger investment divestment job
+router.get('/jobs/investment-divestment', async (req, res) => {
+  try {
+    // Import dynamically to avoid circular dependencies
+    const { default: InvestmentDivestmentService } = await import('../services/InvestmentDivestmentService.js');
+    const divestmentService = new InvestmentDivestmentService();
+    
+    console.log('Manual investment divestment job triggered via API');
+    const result = await divestmentService.execute();
+    
+    res.json({ 
+      success: true, 
+      message: 'Investment divestment job completed successfully',
+      data: result 
+    });
+  } catch (error) {
+    console.error('Manual investment divestment job failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Investment divestment job failed'
     });
   }
 });

@@ -12,6 +12,7 @@ import FundEdit from './modules/PensionFunds/FundEdit'
 import CreateFundWizard from './modules/CreateFund/CreateFundWizard'
 import InvestmentProposals from './modules/Investments/InvestmentProposals'
 import InvestmentDetails from './modules/Investments/InvestmentDetails'
+import Investments from './modules/Investments/Investments'
 import WorkflowsManagement from './modules/Workflows/WorkflowsManagement'
 import WorkflowDetails from './modules/Workflows/WorkflowDetails'
 import WorkflowEdit from './modules/Workflows/WorkflowEdit'
@@ -45,8 +46,9 @@ function AppContent() {
     if (path === '/create-fund') return 'Create Fund'
     if (path.startsWith('/fund/') && path.endsWith('/edit')) return 'Edit Fund'
     if (path.startsWith('/fund/')) return 'Fund Details'
-    if (path === '/investments') return 'Investment Proposals'
+    if (path === '/investment-proposals') return 'Investment Proposals'
     if (path.startsWith('/investment/')) return 'Investment Details'
+    if (path === '/investments') return 'Investments'
     if (path === '/workflows') return 'Workflows'
     if (path.startsWith('/workflow/') && path.endsWith('/edit')) return 'Edit Workflow'
     if (path.startsWith('/workflow/')) return 'Workflow Details'
@@ -98,8 +100,9 @@ function AppContent() {
             <Route path="/fund/:id" element={<FundDetails />} />
             <Route path="/fund/:id/edit" element={<FundEdit />} />
             <Route path="/create-fund" element={<CreateFundWizard />} />
-            <Route path="/investments" element={<InvestmentProposals />} />
+            <Route path="/investment-proposals" element={<InvestmentProposals />} />
             <Route path="/investment/:id" element={<InvestmentDetails />} />
+            <Route path="/investments" element={<Investments />} />
             <Route path="/workflows" element={<WorkflowsManagement />} />
             <Route path="/workflow/:id" element={<WorkflowDetails />} />
             <Route path="/workflow/:id/edit" element={<WorkflowEdit />} />

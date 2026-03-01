@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 // Fund contract ABI for investment function
 const FUND_CONTRACT_ABI = [
   'function investFund(address investmentContractAddress, uint256 amount)',
+  'function withdrawInvestment(address _investmentContract) returns (uint256 withdrawnAmount)',
   'function paused() view returns (bool)',
   'function owner() view returns (address)',
   'function token() view returns (address)',
@@ -142,7 +143,8 @@ export class InvestmentProposalService {
               id: true, 
               name: true, 
               stablecoin: true, 
-              contractAddress: true
+              contractAddress: true,
+              investmentDuration: true
             } 
           } 
         }
@@ -180,6 +182,30 @@ export class InvestmentProposalService {
         console.error('Blockchain transfer failed:', transferError.message);
         throw new Error(`Failed to execute blockchain transfer: ${transferError.message}`);
       }
+
+      // Create investment record
+      // Calculate maturity date based on investment duration
+      let daysToAdd = 2; // Default to medium term
+      if (proposal.fund.investmentDuration === 'short_term') {
+        daysToAdd = 1;
+      } else if (proposal.fund.investmentDuration === 'medium_term') {
+        daysToAdd = 2;
+      } else if (proposal.fund.investmentDuration === 'long_term') {
+        daysToAdd = 3;
+      }
+      const maturityDate = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000);
+
+      await prisma.investment.create({
+        data: {
+          fundId: proposal.fundId,
+          proposalId: proposalId,
+          roi: proposal.expectedROI,
+          investmentAmount: proposal.investmentAmount,
+          investmentContract: proposal.investmentContract,
+          status: 'INVESTED',
+          maturityDate: maturityDate
+        }
+      });
 
       // Create transaction record
       await prisma.transaction.create({

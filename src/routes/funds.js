@@ -2,6 +2,7 @@ import express from 'express';
 import axios from 'axios';
 import { DEPLOY_API_ENDPOINT } from '../utils/constants.js';
 import { PrismaClient } from '@prisma/client';
+import { getFundBalance } from '../utils/blockchain.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -105,6 +106,17 @@ router.get('/funds/:id', async (req, res) => {
       return res.status(404).json({ message: 'Fund not found' });
     }
     
+    // Fetch onchain balance if contract address exists
+    let balanceData = null;
+    if (fund.contractAddress) {
+      try {
+        balanceData = await getFundBalance(fund.contractAddress);
+      } catch (error) {
+        console.error('Error fetching onchain balance:', error);
+        // Continue without balance if there's an error
+      }
+    }
+    
     // Format the response
     const formattedFund = {
       id: fund.id,
@@ -115,8 +127,12 @@ router.get('/funds/:id', async (req, res) => {
       riskAppetite: fund.riskAppetite,
       reserveAmount: fund.reserveAmount,
       investmentDuration: fund.investmentDuration,
+      releaseInterval: fund.releaseInterval,
       stablecoin: fund.stablecoin,
       status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
+      balance: balanceData?.balanceFormatted || null,
+      balanceRaw: balanceData?.balance || null,
+      tokenAddress: balanceData?.tokenAddress || null,
       beneficiaries: fund.beneficiaries,
       beneficiaryCount: fund._count.beneficiaries,
       investmentProposals: fund.investmentProposals,
@@ -182,6 +198,7 @@ router.post('/funds', async (req, res) => {
           reserveAmount: other.reserveAmount,
           investmentDuration: other.investmentDuration,
           stablecoin: stablecoinSymbol,
+          releaseInterval: other.releaseInterval,
         },
       });
       console.log(fund);

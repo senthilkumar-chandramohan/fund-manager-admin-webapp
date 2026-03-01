@@ -22,9 +22,17 @@ app.use((err, req, res, next) => {
 import InvestmentScheduler from './src/jobs/investmentScheduler.js';
 const investmentScheduler = new InvestmentScheduler();
 
+// Initialize Investment Divestment Scheduler
+import DivestmentScheduler from './src/jobs/divestmentScheduler.js';
+const divestmentScheduler = new DivestmentScheduler();
+
 // Start scheduler with custom schedule from environment variable
 // Default: '0 2 * * *' (2:00 AM daily)
 const INVESTMENT_JOB_SCHEDULE = process.env.INVESTMENT_JOB_SCHEDULE || '0 2 * * *';
+const DIVESTMENT_JOB_SCHEDULE = process.env.DIVESTMENT_JOB_SCHEDULE || '0 3 * * *';
+
+// Export schedulers for API access
+export { investmentScheduler, divestmentScheduler };
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
@@ -35,17 +43,26 @@ app.listen(PORT, () => {
   } catch (error) {
     console.error('Failed to start investment scheduler:', error.message);
   }
+  
+  // Start the investment divestment scheduler
+  try {
+    divestmentScheduler.start(DIVESTMENT_JOB_SCHEDULE);
+  } catch (error) {
+    console.error('Failed to start divestment scheduler:', error.message);
+  }
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
   investmentScheduler.stop();
+  divestmentScheduler.stop();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
   investmentScheduler.stop();
+  divestmentScheduler.stop();
   process.exit(0);
 });

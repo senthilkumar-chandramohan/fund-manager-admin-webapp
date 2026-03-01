@@ -207,6 +207,28 @@ const InvestmentDetails = () => {
         />
       </div>
 
+      {/* Investment Contract */}
+      {proposal.investmentContract && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <ExternalLink size={24} />
+            Investment Contract
+          </h2>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-semibold text-slate-600">Contract Address:</p>
+            <a 
+              href={`https://sepolia.etherscan.io/address/${proposal.investmentContract}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 flex items-center gap-2 font-mono text-lg"
+            >
+              {proposal.investmentContract}
+              <ExternalLink size={18} />
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Fund Information */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -234,22 +256,6 @@ const InvestmentDetails = () => {
                 {proposal.fund.contractAddress.slice(0, 10)}...{proposal.fund.contractAddress.slice(-8)}
                 <ExternalLink size={14} />
               </a>
-            }
-          />
-          <InfoRow 
-            label="Investment Contract" 
-            value={
-              proposal.investmentContract ? (
-                <a 
-                  href={`https://sepolia.etherscan.io/address/${proposal.investmentContract}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                >
-                  {proposal.investmentContract.slice(0, 10)}...{proposal.investmentContract.slice(-8)}
-                  <ExternalLink size={14} />
-                </a>
-              ) : 'N/A'
             }
           />
           <InfoRow
