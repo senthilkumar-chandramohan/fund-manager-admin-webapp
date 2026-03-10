@@ -19,6 +19,7 @@ import WorkflowEdit from './modules/Workflows/WorkflowEdit'
 import BeneficiariesList from './modules/Beneficiaries/BeneficiariesList'
 import BeneficiaryDetails from './modules/Beneficiaries/BeneficiaryDetails'
 import BeneficiaryEdit from './modules/Beneficiaries/BeneficiaryEdit'
+import Withdrawals from './modules/Withdrawals/Withdrawals'
 import Utilities from './modules/Utilities/Utilities'
 
 function AppContent() {
@@ -56,6 +57,7 @@ function AppContent() {
     if (path === '/beneficiaries') return 'Beneficiaries'
     if (path.startsWith('/beneficiary/') && path.endsWith('/edit')) return 'Edit Beneficiary'
     if (path.startsWith('/beneficiary/')) return 'Beneficiary Details'
+    if (path === '/withdrawals') return 'Emergency Withdrawals'
     if (path === '/utilities') return 'Utilities'
     return 'Dashboard'
   }
@@ -111,6 +113,7 @@ function AppContent() {
             <Route path="/beneficiaries" element={<BeneficiariesList />} />
             <Route path="/beneficiary/:id" element={<BeneficiaryDetails />} />
             <Route path="/beneficiary/:id/edit" element={<BeneficiaryEdit />} />
+            <Route path="/withdrawals" element={<Withdrawals />} />
             <Route path="/utilities" element={<Utilities />} />
           </Routes>
         </div>

@@ -129,8 +129,28 @@ class InvestmentBatchJobService {
     const reserveAmount = ethers.parseUnits(fund.reserveAmount, 6);
     console.log(`  Reserve Amount: ${ethers.formatUnits(reserveAmount, 6)} ${fund.stablecoin}`);
 
-    // Calculate excess funds
-    const excessFunds = balance - reserveAmount;
+    // Get existing pending proposals (approved ones already reduced the balance)
+    const existingProposals = await prisma.investmentProposal.findMany({
+      where: {
+        fundId: fund.id,
+        status: 'Pending'
+      },
+      select: {
+        investmentAmount: true,
+        status: true
+      }
+    });
+
+    // Calculate total allocated amount from pending proposals
+    const totalAllocated = existingProposals.reduce((sum, proposal) => {
+      const amount = ethers.parseUnits(proposal.investmentAmount || '0', 6);
+      return sum + amount;
+    }, 0n);
+
+    console.log(`  Allocated in Proposals: ${ethers.formatUnits(totalAllocated, 6)} ${fund.stablecoin}`);
+
+    // Calculate excess funds (balance - reserve - pending proposals)
+    const excessFunds = balance - reserveAmount - totalAllocated;
     
     if (excessFunds <= 0) {
       console.log(`  No excess funds available for investment`);

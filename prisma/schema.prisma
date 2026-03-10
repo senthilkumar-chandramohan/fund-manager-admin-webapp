@@ -129,13 +129,12 @@ model EmergencyWithdrawalRequest {
   fund          PensionFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
   
   userId        String
+  withdrawalId  String?  // Blockchain withdrawal ID returned from initiateEmergencyWithdrawal
   amount        String
   reason        String?
-  status        String   @default("Pending") // Pending, Approved, Rejected, Processed
+  status        String   @default("Pending") // Pending, PartiallyApproved, Approved, Rejected, Processed
+  approvedBy    String[] // Array of governor IDs who have approved
   
-  approvedAt    DateTime?
-  approvedBy    String?
-
   createdAt     DateTime @default(now())
 
   @@map("emergency_withdrawal_requests")
