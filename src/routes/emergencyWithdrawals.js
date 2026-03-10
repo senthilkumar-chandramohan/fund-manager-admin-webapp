@@ -55,21 +55,21 @@ router.post('/emergency-withdrawals', async (req, res) => {
 
       console.log(`Initiating emergency withdrawal: Fund=${fund.contractAddress}, Amount=${amountInWei}`);
 
-      // Call initiateEmergencyWithdrawal
+      // Execute the transaction
       const tx = await fundContract.initiateEmergencyWithdrawal(amountInWei);
       const receipt = await tx.wait();
 
-      // Parse withdrawalId from transaction logs/return value
-      // The function returns bytes32 withdrawalId
-      const iface = new ethers.Interface(FUND_CONTRACT_ABI);
+      // Get the block to retrieve timestamp
+      const block = await provider.getBlock(receipt.blockNumber);
       
-      // Try to get withdrawalId from transaction receipt
-      // For simplicity, we'll compute it the same way the contract would
-      // Typically: keccak256(abi.encodePacked(msg.sender, amount, block.timestamp, nonce))
-      // But since we don't have the exact nonce, we'll extract from logs or events
-      
-      // For now, use a placeholder - in production, parse from contract events
-      withdrawalId = receipt.hash; // Temporary - should be parsed from contract event
+      // Reconstruct withdrawalId using the same logic as the contract:
+      // keccak256(abi.encodePacked("EMERGENCY_WITHDRAWAL", block.timestamp, msg.sender))
+      withdrawalId = ethers.keccak256(
+        ethers.solidityPacked(
+          ['string', 'uint256', 'address'],
+          ['EMERGENCY_WITHDRAWAL', block.timestamp, systemWallet.address]
+        )
+      );
 
       console.log(`✓ Emergency withdrawal initiated. TX: ${tx.hash}, Withdrawal ID: ${withdrawalId}`);
     } catch (blockchainError) {
