@@ -44,6 +44,7 @@ model PensionFund {
   riskAppetite      String   @default("MEDIUM") // LOW, MEDIUM, HIGH
   reserveAmount     String?
   investmentDuration String? // short_term, medium_term, long_term
+  investmentDecisionMadeBy String? // Human, AI
   stablecoin        String?  // PYUSD, USDC, USDT
   releaseInterval   ReleaseInterval? // Pension release interval
   lastReleasedDate  DateTime? // Last date pension was released

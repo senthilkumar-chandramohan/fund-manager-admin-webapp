@@ -114,6 +114,17 @@ export class InvestmentProposalService {
   // Admin: Create investment proposal
   static async createProposal(data) {
     try {
+      // Fetch fund to check investmentDecisionMadeBy
+      const fund = await prisma.pensionFund.findUnique({
+        where: { id: data.fundId },
+        select: { investmentDecisionMadeBy: true }
+      });
+
+      if (!fund) {
+        throw new Error(`Fund with ID ${data.fundId} not found`);
+      }
+
+      // Create the proposal
       const proposal = await prisma.investmentProposal.create({
         data: {
           fundId: data.fundId,
@@ -125,6 +136,20 @@ export class InvestmentProposalService {
           status: 'Pending',
         },
       });
+
+      // Auto-approve if fund is set to AI decision making
+      if (fund.investmentDecisionMadeBy === 'AI') {
+        console.log(`Fund is set to AI decision making - auto-approving proposal ${proposal.id}`);
+        try {
+          const approvedProposal = await this.approveProposal(proposal.id, 'AI');
+          return approvedProposal;
+        } catch (approvalError) {
+          console.error(`Failed to auto-approve AI proposal ${proposal.id}:`, approvalError.message);
+          // Return the pending proposal if auto-approval fails
+          return proposal;
+        }
+      }
+
       return proposal;
     } catch (error) {
       throw new Error(`Failed to create proposal: ${error.message}`);

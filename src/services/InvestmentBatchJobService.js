@@ -391,6 +391,23 @@ Respond with JSON array only, no other text.`);
     const proposals = [];
     const excessFundsFormatted = ethers.formatUnits(excessFunds, 6);
 
+    // Fetch fund to check investmentDecisionMadeBy
+    const fund = await prisma.pensionFund.findUnique({
+      where: { id: fundId },
+      select: { 
+        investmentDecisionMadeBy: true,
+        name: true,
+        contractAddress: true,
+        stablecoin: true,
+        investmentDuration: true
+      }
+    });
+
+    const isAIDecision = fund?.investmentDecisionMadeBy === 'AI';
+    if (isAIDecision) {
+      console.log(`  Fund is set to AI decision making - proposals will be auto-approved`);
+    }
+
     for (const investment of investments) {
       try {
         const proposal = await prisma.investmentProposal.create({
@@ -404,8 +421,23 @@ Respond with JSON array only, no other text.`);
             status: 'Pending'
           }
         });
-        proposals.push(proposal);
         console.log(`  ✓ Created proposal ${proposal.id} (Contract: ${proposal.investmentContract || 'N/A'}, Amount: ${proposal.investmentAmount}, Score: ${proposal.aiScore}, ROI: ${proposal.expectedROI}%)`);
+        
+        // Auto-approve if fund is set to AI decision making
+        if (isAIDecision) {
+          try {
+            // Dynamically import to avoid circular dependency
+            const { InvestmentProposalService } = await import('./InvestmentProposalService.js');
+            const approvedProposal = await InvestmentProposalService.approveProposal(proposal.id, 'AI');
+            console.log(`  ✓ Auto-approved proposal ${proposal.id}`);
+            proposals.push(approvedProposal);
+          } catch (approvalError) {
+            console.error(`  ✗ Failed to auto-approve proposal ${proposal.id}:`, approvalError.message);
+            proposals.push(proposal);
+          }
+        } else {
+          proposals.push(proposal);
+        }
       } catch (error) {
         console.error(`  Error creating proposal:`, error.message);
       }

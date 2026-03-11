@@ -14,7 +14,8 @@ const FundEdit = () => {
   const [formData, setFormData] = useState({
     riskAppetite: 'MEDIUM',
     investmentDuration: 'medium_term',
-    reserveAmount: ''
+    reserveAmount: '',
+    investmentDecisionMadeBy: 'AI'
   })
 
   useEffect(() => {
@@ -30,7 +31,8 @@ const FundEdit = () => {
       setFormData({
         riskAppetite: fund.riskAppetite || 'MEDIUM',
         investmentDuration: fund.investmentDuration || 'medium_term',
-        reserveAmount: fund.reserveAmount || ''
+        reserveAmount: fund.reserveAmount || '',
+        investmentDecisionMadeBy: fund.investmentDecisionMadeBy || 'AI'
       })
       setError(null)
     } catch (err) {
@@ -155,6 +157,24 @@ const FundEdit = () => {
               <span className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 font-medium">USD</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">Amount reserved for emergency or special circumstances</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Decision Made by *</label>
+            <select
+              name="investmentDecisionMadeBy"
+              value={formData.investmentDecisionMadeBy}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="AI">AI</option>
+              <option value="Human">Human</option>
+            </select>
+            <p className="text-xs text-slate-500 mt-1">
+              {formData.investmentDecisionMadeBy === 'AI' && 'AI-driven investment decisions'}
+              {formData.investmentDecisionMadeBy === 'Human' && 'Manual investment decisions'}
+            </p>
           </div>
 
           <div className="flex gap-4">

@@ -13,12 +13,6 @@ import CreateFundWizard from './modules/CreateFund/CreateFundWizard'
 import InvestmentProposals from './modules/Investments/InvestmentProposals'
 import InvestmentDetails from './modules/Investments/InvestmentDetails'
 import Investments from './modules/Investments/Investments'
-import WorkflowsManagement from './modules/Workflows/WorkflowsManagement'
-import WorkflowDetails from './modules/Workflows/WorkflowDetails'
-import WorkflowEdit from './modules/Workflows/WorkflowEdit'
-import BeneficiariesList from './modules/Beneficiaries/BeneficiariesList'
-import BeneficiaryDetails from './modules/Beneficiaries/BeneficiaryDetails'
-import BeneficiaryEdit from './modules/Beneficiaries/BeneficiaryEdit'
 import Withdrawals from './modules/Withdrawals/Withdrawals'
 import Utilities from './modules/Utilities/Utilities'
 
@@ -51,12 +45,6 @@ function AppContent() {
     if (path === '/investment-proposals') return 'Investment Proposals'
     if (path.startsWith('/investment/')) return 'Investment Details'
     if (path === '/investments') return 'Investments'
-    if (path === '/workflows') return 'Workflows'
-    if (path.startsWith('/workflow/') && path.endsWith('/edit')) return 'Edit Workflow'
-    if (path.startsWith('/workflow/')) return 'Workflow Details'
-    if (path === '/beneficiaries') return 'Beneficiaries'
-    if (path.startsWith('/beneficiary/') && path.endsWith('/edit')) return 'Edit Beneficiary'
-    if (path.startsWith('/beneficiary/')) return 'Beneficiary Details'
     if (path === '/withdrawals') return 'Emergency Withdrawals'
     if (path === '/utilities') return 'Utilities'
     return 'Dashboard'
@@ -107,12 +95,6 @@ function AppContent() {
             <Route path="/investment-proposals" element={<InvestmentProposals />} />
             <Route path="/investment/:id" element={<InvestmentDetails />} />
             <Route path="/investments" element={<Investments />} />
-            <Route path="/workflows" element={<WorkflowsManagement />} />
-            <Route path="/workflow/:id" element={<WorkflowDetails />} />
-            <Route path="/workflow/:id/edit" element={<WorkflowEdit />} />
-            <Route path="/beneficiaries" element={<BeneficiariesList />} />
-            <Route path="/beneficiary/:id" element={<BeneficiaryDetails />} />
-            <Route path="/beneficiary/:id/edit" element={<BeneficiaryEdit />} />
             <Route path="/withdrawals" element={<Withdrawals />} />
             <Route path="/utilities" element={<Utilities />} />
           </Routes>

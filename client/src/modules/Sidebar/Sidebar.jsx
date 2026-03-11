@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, LogOut, BarChart3, Briefcase, Plus, TrendingUp, Activity, Users, FileText, Settings, Wrench, AlertCircle } from 'lucide-react'
+import { Menu, X, LogOut, BarChart3, Briefcase, Plus, TrendingUp, Settings, Wrench, AlertCircle } from 'lucide-react'
 import { menuItems } from '../../common/data'
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -12,8 +12,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       'funds': Briefcase,
       'create-fund': Plus,
       'investments': TrendingUp,
-      'workflows': Activity,
-      'beneficiaries': Users,
       'withdrawals': AlertCircle,
       'utilities': Wrench,
       'settings': Settings,
@@ -28,8 +26,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       'create-fund': '/create-fund',
       'investment-proposals': '/investment-proposals',
       'investments': '/investments',
-      'workflows': '/workflows',
-      'beneficiaries': '/beneficiaries',
       'withdrawals': '/withdrawals',
       'utilities': '/utilities',
       'settings': '/settings',

@@ -33,6 +33,7 @@ const CreateFundWizard = () => {
   const [riskAppetite, setRiskAppetite] = useState('MEDIUM')
   const [reserveAmount, setReserveAmount] = useState('')
   const [investmentDuration, setInvestmentDuration] = useState('medium_term')
+  const [investmentDecisionMadeBy, setInvestmentDecisionMadeBy] = useState('AI')
   
   const [deploying, setDeploying] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -117,6 +118,7 @@ const CreateFundWizard = () => {
           riskAppetite,
           reserveAmount,
           investmentDuration,
+          investmentDecisionMadeBy,
           stablecoin,
           releaseInterval
         }
@@ -267,8 +269,8 @@ const CreateFundWizard = () => {
       {createFundStep === 2 && <StepTwo beneficiaries={beneficiaries} setBeneficiaries={setBeneficiaries} />}
       {createFundStep === 3 && <StepThree numGovernors={numGovernors} setNumGovernors={setNumGovernors} selectedGovernors={selectedGovernors} setSelectedGovernors={setSelectedGovernors} governors={governors} governorsLoading={governorsLoading} />}
       {createFundStep === 4 && <StepFour timesAllowed={timesAllowed} setTimesAllowed={setTimesAllowed} limitPerWithdrawal={limitPerWithdrawal} setLimitPerWithdrawal={setLimitPerWithdrawal} totalLimit={totalLimit} setTotalLimit={setTotalLimit} />}
-      {createFundStep === 5 && <StepFive riskAppetite={riskAppetite} setRiskAppetite={setRiskAppetite} reserveAmount={reserveAmount} setReserveAmount={setReserveAmount} investmentDuration={investmentDuration} setInvestmentDuration={setInvestmentDuration} />}
-      {createFundStep === 6 && !fundCreated && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} governors={governors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} reserveAmount={reserveAmount} investmentDuration={investmentDuration} />}
+      {createFundStep === 5 && <StepFive riskAppetite={riskAppetite} setRiskAppetite={setRiskAppetite} reserveAmount={reserveAmount} setReserveAmount={setReserveAmount} investmentDuration={investmentDuration} setInvestmentDuration={setInvestmentDuration} investmentDecisionMadeBy={investmentDecisionMadeBy} setInvestmentDecisionMadeBy={setInvestmentDecisionMadeBy} />}
+      {createFundStep === 6 && !fundCreated && <StepSix fundName={fundName} fundDescription={fundDescription} maturityDate={maturityDate} stablecoin={stablecoin} pensionAmount={pensionAmount} releaseInterval={releaseInterval} beneficiaries={beneficiaries} numGovernors={numGovernors} selectedGovernors={selectedGovernors} governors={governors} timesAllowed={timesAllowed} limitPerWithdrawal={limitPerWithdrawal} totalLimit={totalLimit} riskAppetite={riskAppetite} reserveAmount={reserveAmount} investmentDuration={investmentDuration} investmentDecisionMadeBy={investmentDecisionMadeBy} />}
       {createFundStep === 6 && fundCreated && <SuccessMessage fund={createdFundData} />}
 
       {/* Navigation Buttons */}
@@ -686,7 +688,7 @@ const StepFour = ({ timesAllowed, setTimesAllowed, limitPerWithdrawal, setLimitP
   )
 }
 
-const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmount, investmentDuration, setInvestmentDuration }) => {
+const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmount, investmentDuration, setInvestmentDuration, investmentDecisionMadeBy, setInvestmentDecisionMadeBy }) => {
 
   const riskLevels = [
     { value: 'LOW', label: 'Low Risk', description: 'Conservative approach with stable, low-volatility investments' },
@@ -773,12 +775,54 @@ const StepFive = ({ riskAppetite, setRiskAppetite, reserveAmount, setReserveAmou
             ))}
           </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-4">Decision Made by *</label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all"
+              style={{
+                borderColor: investmentDecisionMadeBy === 'AI' ? '#2563eb' : '#e2e8f0',
+                backgroundColor: investmentDecisionMadeBy === 'AI' ? '#eff6ff' : '#ffffff'
+              }}>
+              <input
+                type="radio"
+                name="investmentDecisionMadeBy"
+                value="AI"
+                checked={investmentDecisionMadeBy === 'AI'}
+                onChange={e => setInvestmentDecisionMadeBy(e.target.value)}
+                className="w-4 h-4 cursor-pointer"
+              />
+              <div className="ml-4">
+                <div className="font-semibold text-slate-900">AI</div>
+                <div className="text-sm text-slate-600">AI-driven investment decisions</div>
+              </div>
+            </label>
+            <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all"
+              style={{
+                borderColor: investmentDecisionMadeBy === 'Human' ? '#2563eb' : '#e2e8f0',
+                backgroundColor: investmentDecisionMadeBy === 'Human' ? '#eff6ff' : '#ffffff'
+              }}>
+              <input
+                type="radio"
+                name="investmentDecisionMadeBy"
+                value="Human"
+                checked={investmentDecisionMadeBy === 'Human'}
+                onChange={e => setInvestmentDecisionMadeBy(e.target.value)}
+                className="w-4 h-4 cursor-pointer"
+              />
+              <div className="ml-4">
+                <div className="font-semibold text-slate-900">Human</div>
+                <div className="text-sm text-slate-600">Manual investment decisions</div>
+              </div>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, governors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration }) => {
+const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionAmount, releaseInterval, beneficiaries, numGovernors, selectedGovernors, governors, timesAllowed, limitPerWithdrawal, totalLimit, riskAppetite, reserveAmount, investmentDuration, investmentDecisionMadeBy }) => {
   const stablecoinLabels = {
     'PYUSD': 'PYUSD - PayPal USD',
     'USDC': 'USDC - USD Coin',
@@ -888,6 +932,10 @@ const StepSix = ({ fundName, fundDescription, maturityDate, stablecoin, pensionA
             <div>
               <p className="text-slate-600">Investment Duration</p>
               <p className="font-medium">{investmentDuration?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || '—'}</p>
+            </div>
+            <div>
+              <p className="text-slate-600">Decision Made by</p>
+              <p className="font-medium">{investmentDecisionMadeBy || '—'}</p>
             </div>
           </div>
         </div>

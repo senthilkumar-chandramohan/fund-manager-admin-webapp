@@ -11,12 +11,6 @@ export const investmentProposals = [
   { id: '3', fundName: 'Wilson Trust Fund', aiScore: '85', expectedROI: '7.2', risk: 'LOW', created: '1d ago', expiresIn: '23h' },
 ]
 
-export const workflows = [
-  { id: '1', fundName: 'Johnson Family Pension', type: 'Investment Allocation', status: 'Running', lastRun: '2h ago', nextRun: '6d 22h' },
-  { id: '2', fundName: 'Smith Retirement Fund', type: 'Pension Distribution', status: 'Success', lastRun: '1d ago', nextRun: '29d' },
-  { id: '3', fundName: 'Davis Pension Plan', type: 'Investment Allocation', status: 'Failed', lastRun: '3h ago', nextRun: 'Manual' },
-]
-
 export const dashboardStats = {
   totalAUM: '12,456,789',
   activeAccounts: '1,234',
@@ -30,8 +24,6 @@ export const menuItems = [
   { id: 'create-fund', label: 'Create Fund' },
   { id: 'investment-proposals', label: 'Investment Proposals' },
   { id: 'investments', label: 'Investments' },
-  { id: 'workflows', label: 'Workflows' },
-  { id: 'beneficiaries', label: 'Beneficiaries' },
   { id: 'withdrawals', label: 'Withdrawals' },
   { id: 'utilities', label: 'Utilities' },
   { id: 'settings', label: 'Settings' },

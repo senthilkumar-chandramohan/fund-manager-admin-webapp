@@ -67,6 +67,7 @@ router.get('/funds', async (req, res) => {
       riskAppetite: fund.riskAppetite,
       reserveAmount: fund.reserveAmount,
       investmentDuration: fund.investmentDuration,
+      investmentDecisionMadeBy: fund.investmentDecisionMadeBy,
       stablecoin: fund.stablecoin,
       status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
       beneficiaries: fund._count.beneficiaries,
@@ -127,6 +128,7 @@ router.get('/funds/:id', async (req, res) => {
       riskAppetite: fund.riskAppetite,
       reserveAmount: fund.reserveAmount,
       investmentDuration: fund.investmentDuration,
+      investmentDecisionMadeBy: fund.investmentDecisionMadeBy,
       releaseInterval: fund.releaseInterval,
       stablecoin: fund.stablecoin,
       status: new Date(fund.maturity) > new Date() ? 'Active' : 'Matured',
@@ -197,6 +199,7 @@ router.post('/funds', async (req, res) => {
           riskAppetite: other.riskAppetite,
           reserveAmount: other.reserveAmount,
           investmentDuration: other.investmentDuration,
+          investmentDecisionMadeBy: other.investmentDecisionMadeBy,
           stablecoin: stablecoinSymbol,
           releaseInterval: other.releaseInterval,
           selectedGovernors: other.selectedGovernors || [],
@@ -235,7 +238,7 @@ router.post('/funds', async (req, res) => {
 router.put('/funds/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, riskAppetite, investmentDuration, reserveAmount } = req.body;
+    const { name, description, riskAppetite, investmentDuration, reserveAmount, investmentDecisionMadeBy } = req.body;
 
     console.log(req.body);
 
@@ -257,6 +260,7 @@ router.put('/funds/:id', async (req, res) => {
     if (riskAppetite !== undefined) updateData.riskAppetite = riskAppetite;
     if (investmentDuration !== undefined) updateData.investmentDuration = investmentDuration;
     if (reserveAmount !== undefined) updateData.reserveAmount = reserveAmount;
+    if (investmentDecisionMadeBy !== undefined) updateData.investmentDecisionMadeBy = investmentDecisionMadeBy;
     console.log("Updating...");
     // Update the fund
     const updatedFund = await prisma.pensionFund.update({

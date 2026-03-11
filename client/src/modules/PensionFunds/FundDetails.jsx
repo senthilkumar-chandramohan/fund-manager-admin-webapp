@@ -132,6 +132,12 @@ const FundDetails = () => {
             </p>
           </div>
           <div>
+            <p className="text-sm text-slate-600">Decision Made by</p>
+            <p className="font-semibold text-slate-900">
+              {fund.investmentDecisionMadeBy || 'N/A'}
+            </p>
+          </div>
+          <div>
             <p className="text-sm text-slate-600">Release Interval</p>
             <p className="font-semibold text-slate-900">
               {fund.releaseInterval || 'N/A'}
