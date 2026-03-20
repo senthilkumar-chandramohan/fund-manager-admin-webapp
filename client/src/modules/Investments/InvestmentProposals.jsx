@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Search, RefreshCw, Eye, CheckCircle, X, Clock, TrendingUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const InvestmentProposals = () => {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ const InvestmentProposals = () => {
       if (riskFilter !== 'All') params.riskLevel = riskFilter
       if (statusFilter !== 'All') params.status = statusFilter
       
-      const response = await axios.get('http://localhost:5000/api/admin/investment-proposals', { params })
+      const response = await axios.get(`${API_HOST}/api/admin/investment-proposals`, { params })
       setProposals(response.data.data)
       setError(null)
     } catch (err) {
@@ -37,7 +38,7 @@ const InvestmentProposals = () => {
 
   const handleApprove = async (proposalId) => {
     try {
-      await axios.post(`http://localhost:5000/api/admin/investment-proposals/${proposalId}/approve`, {
+      await axios.post(`${API_HOST}/api/admin/investment-proposals/${proposalId}/approve`, {
         approvedBy: 'Admin' // TODO: Get from authenticated user
       })
       fetchProposals()
@@ -49,7 +50,7 @@ const InvestmentProposals = () => {
 
   const handleReject = async (proposalId) => {
     try {
-      await axios.post(`http://localhost:5000/api/admin/investment-proposals/${proposalId}/reject`, {
+      await axios.post(`${API_HOST}/api/admin/investment-proposals/${proposalId}/reject`, {
         approvedBy: 'Admin' // TODO: Get from authenticated user
       })
       fetchProposals()

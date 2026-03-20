@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { TrendingUp, Search, Filter, RefreshCw, ExternalLink, Calendar, DollarSign } from 'lucide-react'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const Investments = () => {
   const [investments, setInvestments] = useState([])
@@ -12,7 +13,7 @@ const Investments = () => {
   const fetchInvestments = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('http://localhost:5000/api/admin/investments')
+      const response = await axios.get(`${API_HOST}/api/admin/investments`)
       setInvestments(response.data.data || [])
     } catch (error) {
       console.error('Error fetching investments:', error)

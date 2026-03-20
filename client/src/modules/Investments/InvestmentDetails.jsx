@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, X, Clock, TrendingUp, DollarSign, BarChart3, Calendar, ExternalLink, RefreshCw } from 'lucide-react'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const InvestmentDetails = () => {
   const { id } = useParams()
@@ -14,7 +15,7 @@ const InvestmentDetails = () => {
   const fetchProposal = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`http://localhost:5000/api/admin/investment-proposals/${id}`)
+      const response = await axios.get(`${API_HOST}/api/admin/investment-proposals/${id}`)
       setProposal(response.data.data)
       setError(null)
     } catch (err) {
@@ -32,7 +33,7 @@ const InvestmentDetails = () => {
   const handleApprove = async () => {
     try {
       setActionLoading(true)
-      await axios.post(`http://localhost:5000/api/admin/investment-proposals/${id}/approve`, {
+      await axios.post(`${API_HOST}/api/admin/investment-proposals/${id}/approve`, {
         approvedBy: 'Admin' // TODO: Get from authenticated user
       })
       fetchProposal()
@@ -47,7 +48,7 @@ const InvestmentDetails = () => {
   const handleReject = async () => {
     try {
       setActionLoading(true)
-      await axios.post(`http://localhost:5000/api/admin/investment-proposals/${id}/reject`, {
+      await axios.post(`${API_HOST}/api/admin/investment-proposals/${id}/reject`, {
         approvedBy: 'Admin' // TODO: Get from authenticated user
       })
       fetchProposal()
