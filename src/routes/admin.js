@@ -204,6 +204,31 @@ router.get('/jobs/investment-divestment', async (req, res) => {
   }
 });
 
+// POST /api/admin/jobs/pension-release - Manually trigger pension release job
+router.get('/jobs/pension-release', async (req, res) => {
+  try {
+    // Import dynamically to avoid circular dependencies
+    const { default: PensionReleaseService } = await import('../services/PensionReleaseService.js');
+    const pensionReleaseService = new PensionReleaseService();
+    
+    console.log('Manual pension release job triggered via API');
+    const result = await pensionReleaseService.execute();
+    
+    res.json({ 
+      success: true, 
+      message: 'Pension release job completed successfully',
+      data: result 
+    });
+  } catch (error) {
+    console.error('Manual pension release job failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Pension release job failed'
+    });
+  }
+});
+
 // GET /api/admin/governors - Get all governors
 router.get('/governors', async (req, res) => {
   try {

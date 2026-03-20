@@ -13,7 +13,7 @@ const ERC20_ABI = [
 
 // Configuration
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY';
-const CONTRACTS_API_URL = process.env.CONTRACTS_API_URL || 'http://localhost:6000/contracts';
+const CONTRACTS_API_URL = process.env.INVESTMENT_CONTRACTS_DISCOVERY_ENDPOINT || 'http://localhost:6000/contracts';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 /**

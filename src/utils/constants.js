@@ -1,1 +1,1 @@
-export const DEPLOY_API_ENDPOINT = 'http://localhost:4000/deploy';
+export const DEPLOY_API_ENDPOINT = process.env.FUND_MANAGER_CONTRACT_DEPLOY_ENDPOINT;
