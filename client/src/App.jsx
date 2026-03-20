@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { Bell } from 'lucide-react'
+import { API_HOST } from './common/constants'
 
 // Import modules
 import Sidebar from './modules/Sidebar/Sidebar'
@@ -24,7 +25,7 @@ function AppContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const healthRes = await axios.get('/api/health')
+        const healthRes = await axios.get(`${API_HOST}/api/health`)
         setServerStatus('✓ Connected')
       } catch (error) {
         setServerStatus('✗ Disconnected')

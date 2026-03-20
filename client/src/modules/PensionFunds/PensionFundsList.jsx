@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Download, Eye, Edit } from 'lucide-react'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const PensionFundsList = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -21,7 +22,7 @@ const PensionFundsList = () => {
       if (searchTerm) params.search = searchTerm
       if (filterStatus) params.status = filterStatus
       
-      const response = await axios.get('/api/funds', { params })
+      const response = await axios.get(`${API_HOST}/api/funds`, { params })
       setFunds(response.data.data || [])
       setError(null)
     } catch (err) {

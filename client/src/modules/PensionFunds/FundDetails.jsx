@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
 import { ArrowLeft, Edit } from 'lucide-react'
+import { API_HOST } from '../../common/constants'
 
 const FundDetails = () => {
   const { id } = useParams()
@@ -11,7 +12,7 @@ const FundDetails = () => {
   useEffect(() => {
     const fetchFund = async () => {
       try {
-        const response = await axios.get(`/api/funds/${id}`)
+        const response = await axios.get(`${API_HOST}/api/funds/${id}`)
         setFund(response.data.data)
       } catch (error) {
         console.error('Error fetching fund:', error)

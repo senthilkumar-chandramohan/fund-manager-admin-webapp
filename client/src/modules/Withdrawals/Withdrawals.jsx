@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { API_HOST } from '../../common/constants';
 
 const Withdrawals = () => {
   const [activeTab, setActiveTab] = useState('open-requests');
@@ -23,7 +24,7 @@ const Withdrawals = () => {
 
   const fetchFunds = async () => {
     try {
-      const response = await axios.get('/api/admin/pension-funds');
+      const response = await axios.get(`${API_HOST}/api/admin/pension-funds`);
       console.log('Fetched funds response:', response.data);
       const fundsData = Array.isArray(response.data.data) ? response.data.data : [];
       console.log('Setting funds to:', fundsData);
@@ -37,7 +38,7 @@ const Withdrawals = () => {
   const fetchOpenRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/emergency-withdrawals');
+      const response = await axios.get(`${API_HOST}/api/admin/emergency-withdrawals`);
       setOpenRequests(response.data);
     } catch (err) {
       console.error('Error fetching open requests:', err);
@@ -53,7 +54,7 @@ const Withdrawals = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/admin/emergency-withdrawals', {
+      const response = await axios.post(`${API_HOST}/api/admin/emergency-withdrawals`, {
         fundId: selectedFund,
         amount,
         reason
@@ -84,7 +85,7 @@ const Withdrawals = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`/api/admin/emergency-withdrawals/${requestId}/approve`, {
+      const response = await axios.post(`${API_HOST}/api/admin/emergency-withdrawals/${requestId}/approve`, {
         governorId
       });
 
@@ -103,7 +104,7 @@ const Withdrawals = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`/api/admin/emergency-withdrawals/${requestId}/reject`);
+      const response = await axios.post(`${API_HOST}/api/admin/emergency-withdrawals/${requestId}/reject`);
       setSuccess(response.data.message || 'Withdrawal request rejected successfully!');
       fetchOpenRequests();
     } catch (err) {

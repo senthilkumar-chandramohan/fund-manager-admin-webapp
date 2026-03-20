@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const FundEdit = () => {
   const { id } = useParams()
@@ -25,7 +26,7 @@ const FundEdit = () => {
   const fetchFund = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`/api/funds/${id}`)
+      const response = await axios.get(`${API_HOST}/api/funds/${id}`)
       const fund = response.data.data
       
       setFormData({
@@ -56,7 +57,7 @@ const FundEdit = () => {
     
     try {
       setSaving(true)
-      await axios.put(`/api/funds/${id}`, formData)
+      await axios.put(`${API_HOST}/api/funds/${id}`, formData)
       alert('Fund updated successfully!')
       navigate(`/fund/${id}`)
     } catch (err) {

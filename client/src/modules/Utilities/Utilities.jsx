@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { UserPlus, Coins, Loader2 } from 'lucide-react'
 import axios from 'axios'
+import { API_HOST } from '../../common/constants'
 
 const Utilities = () => {
   const [activeTab, setActiveTab] = useState('governors')
@@ -29,7 +30,7 @@ const Utilities = () => {
   const fetchPensionFunds = async () => {
     setFundsLoading(true)
     try {
-      const response = await axios.get('/api/admin/pension-funds')
+      const response = await axios.get(`${API_HOST}/api/admin/pension-funds`)
       setPensionFunds(response.data.data || [])
     } catch (error) {
       console.error('Error fetching pension funds:', error)
@@ -45,7 +46,7 @@ const Utilities = () => {
     setGovernorMessage(null)
 
     try {
-      const response = await axios.post('/api/admin/governors', governorForm)
+      const response = await axios.post(`${API_HOST}/api/admin/governors`, governorForm)
       setGovernorMessage({ 
         type: 'success', 
         text: `Governor created successfully! Wallet: ${response.data.data.wallet}` 
@@ -79,7 +80,7 @@ const Utilities = () => {
     setFundMessage(null)
 
     try {
-      const response = await axios.post(`/api/admin/pension-funds/${fundId}/add-funds`, {
+      const response = await axios.post(`${API_HOST}/api/admin/pension-funds/${fundId}/add-funds`, {
         amount: amount
       })
       setFundMessage({ 
