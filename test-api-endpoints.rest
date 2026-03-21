@@ -1,6 +1,9 @@
 GET http://localhost:5000/api/admin/jobs/investment-batch
 
 ###
+https://fund-manager-admin-webapp-0f5d289987ef.herokuapp.com/api/admin/jobs/investment-batch
+
+###
 GET http://localhost:5000/api/admin/jobs/investment-divestment
 
 ###

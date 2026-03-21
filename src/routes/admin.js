@@ -161,7 +161,6 @@ router.get('/jobs/investment-batch', async (req, res) => {
     const { default: InvestmentBatchJobService } = await import('../services/InvestmentBatchJobService.js');
     const batchJobService = new InvestmentBatchJobService();
     
-    console.log('Manual investment batch job triggered via API');
     const result = await batchJobService.execute();
     
     res.json({ 
@@ -186,7 +185,6 @@ router.get('/jobs/investment-divestment', async (req, res) => {
     const { default: InvestmentDivestmentService } = await import('../services/InvestmentDivestmentService.js');
     const divestmentService = new InvestmentDivestmentService();
     
-    console.log('Manual investment divestment job triggered via API');
     const result = await divestmentService.execute();
     
     res.json({ 
@@ -211,7 +209,6 @@ router.get('/jobs/pension-release', async (req, res) => {
     const { default: PensionReleaseService } = await import('../services/PensionReleaseService.js');
     const pensionReleaseService = new PensionReleaseService();
     
-    console.log('Manual pension release job triggered via API');
     const result = await pensionReleaseService.execute();
     
     res.json({ 
@@ -341,8 +338,6 @@ router.post('/pension-funds/:id/add-funds', async (req, res) => {
     }
 
     // Initiate blockchain contribution
-    console.log(`Initiating contribution of ${amount} ${fund.stablecoin} to contract ${fund.contractAddress}`);
-    
     try {
       const contributionResult = await contributeToPensionFund(
         tokenAddress,

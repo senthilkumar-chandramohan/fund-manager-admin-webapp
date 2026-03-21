@@ -5,12 +5,6 @@ export const pensionFunds = [
   { id: '4', name: 'Martinez Senior Fund', corpus: '67,500', maturity: '2025-08-05', status: 'Matured', beneficiaries: 1, roi: '6.9' },
 ]
 
-export const investmentProposals = [
-  { id: '1', fundName: 'Johnson Family Pension', aiScore: '92', expectedROI: '8.5', risk: 'MEDIUM', created: '2h ago', expiresIn: '46h' },
-  { id: '2', fundName: 'Smith Retirement Fund', aiScore: '88', expectedROI: '9.1', risk: 'HIGH', created: '5h ago', expiresIn: '43h' },
-  { id: '3', fundName: 'Wilson Trust Fund', aiScore: '85', expectedROI: '7.2', risk: 'LOW', created: '1d ago', expiresIn: '23h' },
-]
-
 export const dashboardStats = {
   totalAUM: '12,456,789',
   activeAccounts: '1,234',

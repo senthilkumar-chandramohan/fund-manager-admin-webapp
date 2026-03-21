@@ -53,8 +53,6 @@ router.post('/emergency-withdrawals', async (req, res) => {
       // Parse amount based on stablecoin decimals (assuming 6 for USDC/USDT/PYUSD)
       const amountInWei = ethers.parseUnits(amount, 6);
 
-      console.log(`Initiating emergency withdrawal: Fund=${fund.contractAddress}, Amount=${amountInWei}`);
-
       // Execute the transaction
       const tx = await fundContract.initiateEmergencyWithdrawal(amountInWei);
       const receipt = await tx.wait();
@@ -71,7 +69,7 @@ router.post('/emergency-withdrawals', async (req, res) => {
         )
       );
 
-      console.log(`✓ Emergency withdrawal initiated. TX: ${tx.hash}, Withdrawal ID: ${withdrawalId}`);
+
     } catch (blockchainError) {
       console.error('Blockchain error:', blockchainError);
       return res.status(500).json({ 
@@ -230,12 +228,8 @@ router.post('/emergency-withdrawals/:id/approve', async (req, res) => {
       const systemWallet = new ethers.Wallet(SYSTEM_WALLET_PRIVATE_KEY, provider);
       const fundContract = new ethers.Contract(request.fund.contractAddress, FUND_CONTRACT_ABI, systemWallet);
 
-      console.log(`Approving emergency withdrawal: Governor=${governor.wallet}, WithdrawalId=${request.withdrawalId}`);
-
       const tx = await fundContract.approveEmergencyWithdrawal(governor.wallet, request.withdrawalId);
       await tx.wait();
-
-      console.log(`✓ Governor approval recorded. TX: ${tx.hash}`);
     } catch (blockchainError) {
       console.error('Blockchain error:', blockchainError);
       return res.status(500).json({ 
@@ -258,17 +252,12 @@ router.post('/emergency-withdrawals/:id/approve', async (req, res) => {
     // If all governors approved, execute the withdrawal
     if (allApproved) {
       try {
-        console.log(`All governors approved - executing withdrawal`);
         const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
         const systemWallet = new ethers.Wallet(SYSTEM_WALLET_PRIVATE_KEY, provider);
         const fundContract = new ethers.Contract(request.fund.contractAddress, FUND_CONTRACT_ABI, systemWallet);
 
-        console.log(`Fund Contract address ${request.fund.contractAddress}`);
         const executeTx = await fundContract.executeEmergencyWithdrawal(request.withdrawalId);
         await executeTx.wait();
-
-        console.log(`✓ Emergency withdrawal executed. TX: ${executeTx.hash}`);
-        updatedStatus = 'Processed';
       } catch (executeError) {
         console.error('Execute error:', executeError);
         return res.status(500).json({ 

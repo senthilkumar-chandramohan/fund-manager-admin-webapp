@@ -156,9 +156,6 @@ router.post('/funds', async (req, res) => {
   try {
     const { contract, other } = req.body;
 
-    console.log(contract);
-    console.log(other);
-
     // Get stablecoin address from symbol
     const stablecoinSymbol = other.stablecoin;
     const stablecoinAddress = STABLECOIN_ADDRESSES[stablecoinSymbol];
@@ -176,14 +173,9 @@ router.post('/funds', async (req, res) => {
     // Call the /deploy API endpoint
     const deployResponse = await axios.post(DEPLOY_API_ENDPOINT, contractPayload);
 
-    console.log(deployResponse.status);
-    console.log(deployResponse.data.contractAddress);
-
     if (deployResponse.status === 201 && deployResponse.data.contractAddress) {
       const contractAddress = deployResponse.data.contractAddress;
-      console.log(contractAddress);
-
-      console.log(contract.fundMaturityDate);
+      
       // Persist fund details in the database
       const maturityDate = new Date(parseInt(contract.fundMaturityDate+"000"));
       if (Number.isNaN(maturityDate.getTime())) {
@@ -205,7 +197,7 @@ router.post('/funds', async (req, res) => {
           selectedGovernors: other.selectedGovernors || [],
         },
       });
-      console.log(fund);
+
 
       // Persist beneficiaries in the database
       const beneficiaryPromises = other.beneficiaries.map((beneficiary) =>
@@ -240,14 +232,10 @@ router.put('/funds/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, riskAppetite, investmentDuration, reserveAmount, investmentDecisionMadeBy } = req.body;
 
-    console.log(req.body);
-
     // Check if fund exists
     const existingFund = await prisma.pensionFund.findUnique({
       where: { id }
     });
-
-    console.log(existingFund);
 
     if (!existingFund) {
       return res.status(404).json({ message: 'Fund not found' });
@@ -261,7 +249,7 @@ router.put('/funds/:id', async (req, res) => {
     if (investmentDuration !== undefined) updateData.investmentDuration = investmentDuration;
     if (reserveAmount !== undefined) updateData.reserveAmount = reserveAmount;
     if (investmentDecisionMadeBy !== undefined) updateData.investmentDecisionMadeBy = investmentDecisionMadeBy;
-    console.log("Updating...");
+    
     // Update the fund
     const updatedFund = await prisma.pensionFund.update({
       where: { id },
