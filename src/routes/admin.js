@@ -154,75 +154,147 @@ router.post('/investment-proposals/:id/reject', async (req, res) => {
   }
 });
 
-// POST /api/admin/jobs/investment-batch - Manually trigger investment batch job
+// GET /api/admin/jobs/investment-batch - Manually trigger investment batch job with streaming logs
 router.get('/jobs/investment-batch', async (req, res) => {
+  // Set up streaming response headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Capture console logs
+  const originalLog = console.log;
+  const originalError = console.error;
+  
+  console.log = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalLog.apply(console, args);
+  };
+
+  console.error = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalError.apply(console, args);
+  };
+
   try {
-    // Import dynamically to avoid circular dependencies
+    // Import and run the job
     const { default: InvestmentBatchJobService } = await import('../services/InvestmentBatchJobService.js');
     const batchJobService = new InvestmentBatchJobService();
     
     const result = await batchJobService.execute();
     
-    res.json({ 
-      success: true, 
-      message: 'Investment batch job completed successfully',
-      data: result 
-    });
+    res.write(`\n✅ Job completed successfully\n`);
+    res.end();
   } catch (error) {
-    console.error('Manual investment batch job failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      message: 'Investment batch job failed'
-    });
+    originalError('Investment batch job error:', error);
+    res.write(`\n❌ Job failed: ${error.message}\n`);
+    res.end();
+  } finally {
+    // Restore console methods
+    console.log = originalLog;
+    console.error = originalError;
   }
 });
 
-// POST /api/admin/jobs/investment-divestment - Manually trigger investment divestment job
+// GET /api/admin/jobs/investment-divestment - Manually trigger investment divestment job with streaming logs
 router.get('/jobs/investment-divestment', async (req, res) => {
+  // Set up streaming response headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Capture console logs
+  const originalLog = console.log;
+  const originalError = console.error;
+  
+  console.log = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalLog.apply(console, args);
+  };
+
+  console.error = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalError.apply(console, args);
+  };
+
   try {
-    // Import dynamically to avoid circular dependencies
+    // Import and run the job
     const { default: InvestmentDivestmentService } = await import('../services/InvestmentDivestmentService.js');
     const divestmentService = new InvestmentDivestmentService();
     
     const result = await divestmentService.execute();
     
-    res.json({ 
-      success: true, 
-      message: 'Investment divestment job completed successfully',
-      data: result 
-    });
+    res.write(`\n✅ Job completed successfully\n`);
+    res.end();
   } catch (error) {
-    console.error('Manual investment divestment job failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      message: 'Investment divestment job failed'
-    });
+    originalError('Divestment job error:', error);
+    res.write(`\n❌ Job failed: ${error.message}\n`);
+    res.end();
+  } finally {
+    // Restore console methods
+    console.log = originalLog;
+    console.error = originalError;
   }
 });
 
-// POST /api/admin/jobs/pension-release - Manually trigger pension release job
+// GET /api/admin/jobs/pension-release - Manually trigger pension release job with streaming logs
 router.get('/jobs/pension-release', async (req, res) => {
+  // Set up streaming response headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Capture console logs
+  const originalLog = console.log;
+  const originalError = console.error;
+  
+  console.log = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalLog.apply(console, args);
+  };
+
+  console.error = (...args) => {
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+    res.write(message + '\n');
+    originalError.apply(console, args);
+  };
+
   try {
-    // Import dynamically to avoid circular dependencies
+    // Import and run the job
     const { default: PensionReleaseService } = await import('../services/PensionReleaseService.js');
     const pensionReleaseService = new PensionReleaseService();
     
     const result = await pensionReleaseService.execute();
     
-    res.json({ 
-      success: true, 
-      message: 'Pension release job completed successfully',
-      data: result 
-    });
+    res.write(`\n✅ Job completed successfully\n`);
+    res.end();
   } catch (error) {
-    console.error('Manual pension release job failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      message: 'Pension release job failed'
-    });
+    originalError('Pension release job error:', error);
+    res.write(`\n❌ Job failed: ${error.message}\n`);
+    res.end();
+  } finally {
+    // Restore console methods
+    console.log = originalLog;
+    console.error = originalError;
   }
 });
 

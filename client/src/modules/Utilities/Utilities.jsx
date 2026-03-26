@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { UserPlus, Coins, Loader2 } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { UserPlus, Coins, Loader2, Play, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { API_HOST } from '../../common/constants'
 
@@ -20,12 +20,25 @@ const Utilities = () => {
   const [fundAmounts, setFundAmounts] = useState({})
   const [fundMessage, setFundMessage] = useState(null)
 
+  // Jobs state
+  const [jobLogs, setJobLogs] = useState('')
+  const [runningJob, setRunningJob] = useState(null)
+  const [jobMessage, setJobMessage] = useState(null)
+  const textareaRef = useRef(null)
+
   // Fetch pension funds when tab switches to fund management
   useEffect(() => {
     if (activeTab === 'funds') {
       fetchPensionFunds()
     }
   }, [activeTab])
+
+  // Auto-scroll textarea to bottom when logs are updated
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = textareaRef.current.scrollHeight
+    }
+  }, [jobLogs])
 
   const fetchPensionFunds = async () => {
     setFundsLoading(true)
@@ -102,6 +115,61 @@ const Utilities = () => {
     }
   }
 
+  const runJob = async (endpoint, jobTitle) => {
+    setRunningJob(jobTitle)
+    setJobMessage(null)
+    setJobLogs(`🔄 Starting ${jobTitle}...\n`)
+
+    try {
+      const response = await fetch(`${API_HOST}${endpoint}`)
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        buffer += chunk
+
+        // Split by newline and process complete lines
+        const lines = buffer.split('\n')
+        buffer = lines[lines.length - 1] // Keep incomplete line in buffer
+
+        // Add complete lines to logs
+        for (let i = 0; i < lines.length - 1; i++) {
+          setJobLogs(prev => prev + lines[i] + '\n')
+        }
+      }
+
+      // Process any remaining buffer
+      if (buffer) {
+        setJobLogs(prev => prev + buffer + '\n')
+      }
+
+      setJobLogs(prev => prev + `\n✅ ${jobTitle} completed successfully!\n`)
+      setJobMessage({ type: 'success', text: `${jobTitle} finished` })
+    } catch (error) {
+      console.error(`Error running job:`, error)
+      setJobLogs(prev => prev + `\n❌ Error: ${error.message}\n`)
+      setJobMessage({ type: 'error', text: `Failed to run ${jobTitle}: ${error.message}` })
+    } finally {
+      setRunningJob(null)
+    }
+  }
+
+  const clearLogs = () => {
+    setJobLogs('')
+    setJobMessage(null)
+  }
+
   return (
     <div className="max-w-6xl">
       {/* Tabs */}
@@ -128,6 +196,17 @@ const Utilities = () => {
           >
             <Coins size={20} />
             Add Fund to Pension Contract
+          </button>
+          <button
+            onClick={() => setActiveTab('jobs')}
+            className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${
+              activeTab === 'jobs' 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Play size={20} />
+            Jobs
           </button>
         </div>
       </div>
@@ -266,6 +345,109 @@ const Utilities = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'jobs' && (
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Run Background Jobs</h2>
+
+          {jobMessage && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              jobMessage.type === 'success' 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              {jobMessage.text}
+            </div>
+          )}
+
+          <div className="mb-6 space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-2">Available Jobs</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button
+                  onClick={() => runJob('/api/admin/jobs/investment-batch', 'Investment Batch Job')}
+                  disabled={runningJob !== null}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {runningJob === 'Investment Batch Job' ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} />
+                      Investment Batch Job
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => runJob('/api/admin/jobs/investment-divestment', 'Divestment Job')}
+                  disabled={runningJob !== null}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {runningJob === 'Divestment Job' ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} />
+                      Divestment Job
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => runJob('/api/admin/jobs/pension-release', 'Pension Release Job')}
+                  disabled={runningJob !== null}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {runningJob === 'Pension Release Job' ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} />
+                      Pension Release Job
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-slate-700">
+                Job Logs
+              </label>
+              <button
+                onClick={clearLogs}
+                disabled={runningJob !== null}
+                className="flex items-center gap-1 px-3 py-1 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 size={14} />
+                Clear
+              </button>
+            </div>
+            <textarea
+              ref={textareaRef}
+              value={jobLogs}
+              disabled
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-slate-50 text-slate-900 font-mono text-sm h-96 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Job logs will appear here..."
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              ℹ️ Logs are automatically scrolled to show the latest output. Only one job can run at a time.
+            </p>
+          </div>
         </div>
       )}
     </div>
